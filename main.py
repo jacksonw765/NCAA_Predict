@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import tensorflow as tf
 from keras.applications.densenet import layers
 from keras.optimizer_v2.adam import Adam
@@ -21,7 +22,7 @@ from sklearn.model_selection import train_test_split
 # df = df.drop(columns=['losing_abbr', 'losing_name', 'stadium', 'time', 'winner', 'winning_abbr','winning_name'])
 
 df_list = []
-for x in range(2019, 2021):
+for x in range(2017, 2021):
     for team in Teamsf(str(x)):
         df_list.append(team.dataframe)
 df = pd.concat(df_list)
@@ -36,20 +37,33 @@ train = tf.data.Dataset.from_tensor_slices((X_train, y_train))
 train = train.repeat().shuffle(1000).batch(32)
 test = tf.data.Dataset.from_tensor_slices((X_test, y_test)).batch(1)
 
+#x_train = np.array(X_train)
+#x_train = x_train.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+
 model = tf.keras.Sequential([
-    #tf.keras.Input((48,)),
-    tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 8), data_format="channels_first", activation="relu"),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(64, activation=tf.nn.relu),
-    tf.keras.layers.Dense(99, activation=tf.nn.softmax)
+    tf.keras.Input((48,)),
+    #tf.keras.layers.LSTM(48, return_sequences=True, input_shape=(x_train.shape[1], 1)),
+    #tf.keras.layers.LSTM(48, return_sequences=False),
+    # tf.keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(140,)),
+    # #tf.keras.Input((48,)),
+    # #tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 8), data_format="channels_first", activation="relu"),
+    # #tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(2500, activation=tf.nn.relu),
+    tf.keras.layers.Dense(2500, activation=tf.nn.relu),
+    tf.keras.layers.Dense(1, activation=tf.nn.softmax)
 ])
 
+# model.compile(
+#     loss='sparse_categorical_crossentropy',
+#     optimizer=Adam(lr=0.0001),
+#     metrics=['accuracy'])
+
 model.compile(
-    loss='sparse_categorical_crossentropy',
-    optimizer=Adam(lr=0.0001),
+    loss='mean_squared_error',
+    optimizer='adam',
     metrics=['accuracy'])
 
-model.fit(train, validation_data=test, steps_per_epoch=150, epochs=100)
+model.fit(train, validation_data=test, steps_per_epoch=100, epochs=30)
 
 # get 2020 data
 df_test = []

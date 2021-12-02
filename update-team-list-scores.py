@@ -1,7 +1,4 @@
 import pandas as pd
-#import tensorflow as tf
-#from sklearn.model_selection import train_test_split
-from sportsipy.ncaab.teams import Teams
 from sportsipy.ncaab.schedule import Schedule
 
 df_teams = pd.read_csv('teams.csv')
@@ -14,9 +11,9 @@ all_teams = df_teams['abbreviation'].to_numpy().tolist()
 all_teams_tmp = all_teams[:10]
 df_sch_list = []
 master_df = []
-for team in all_teams_tmp:
+for team in all_teams:
     print(team)
-    main_team = df_teams[df_teams['abbreviation'].str.contains(team)]
+    main_team = df_teams[df_teams['abbreviation'] == team]
     fixed = str(team.strip()).replace(' ', '-').replace('&', '').replace('.', '').replace("'", "").lower()
     try:
         sch = Schedule(fixed, year='2022')
@@ -30,7 +27,7 @@ for team in all_teams_tmp:
                 result_arr = [df_sch_select['points_for'].values.tolist()[0],
                               df_sch_select['points_against'].values.tolist()[0]]
                 opp_df = df_teams[df_teams.abbreviation == team_name]
-                opp_df = pd.DataFrame(opp_df.to_numpy(), columns=df_teams_columns_new)
+                opp_df.columns = df_teams_columns_new
                 result = pd.DataFrame([result_arr], columns=['points_for', 'points_against'])
                 append_team = main_team.reset_index(drop=True).merge(opp_df.reset_index(drop=True),
                                                                      left_index=True, right_index=True)
@@ -40,4 +37,4 @@ for team in all_teams_tmp:
         print(fixed)
 
 master_df = pd.concat(master_df)
-print(master_df)
+master_df.to_csv('team_list_scores2.csv')

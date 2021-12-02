@@ -20,4 +20,4 @@ for team in Teams(2022):
     #         print("error: " + str(player))
 print(len(team_df))
 df = pd.concat(team_df)
-df.to_csv('teams.csv')
+df.to_csv('teams2.csv')
