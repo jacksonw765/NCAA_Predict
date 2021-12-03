@@ -5,34 +5,37 @@ import numpy as np
 
 columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_wins', 'games_played', 'home_losses',
                 'home_wins', 'losses', 'wins',  'away_losses_2', 'away_wins_2', 'conference_losses_2', 'conference_wins_2',
-                'games_played_2', 'home_losses_2', 'home_wins_2', 'losses_2', 'wins_2']
+                'games_played_2', 'home_losses_2', 'home_wins_2', 'losses_2', 'wins_2',]
 
 
-def get_game(team1, team2):
-    df_teams = pd.read_csv('teams.csv')
+def get_game(home_team, away_team):
+    df_teams = pd.read_csv('teams2.csv')
     df_teams_columns = df_teams.columns.tolist()
     df_teams_columns_new = []
     for x in df_teams_columns:
         df_teams_columns_new.append(x + "_2")
-    team_1 = df_teams[df_teams['abbreviation'] == team1]
-    team_2 = df_teams[df_teams['abbreviation'] == team2]
+    #location = pd.DataFrame([2, 0], columns=['location'])
+    team_1 = df_teams[df_teams['abbreviation'] == home_team]
+    team_2 = df_teams[df_teams['abbreviation'] == away_team]
     team_2.columns = df_teams_columns_new
     append_team = team_1.reset_index(drop=True).merge(team_2.reset_index(drop=True), left_index=True, right_index=True)
+    #append_team = append_team.filter(regex='percentage')
+    append_team["location"] = [2]
     append_team = append_team.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0', 'Unnamed: 0_2'])
-    #append_team = append_team.drop(columns=columns_drop)
-    append_team = append_team.filter(regex='percentage')
+    append_team = append_team.drop(columns=columns_drop)
+
     return append_team
 
 
 master_df = pd.read_csv('team_list_scores2.csv')
 y = master_df[['points_for', 'points_against']].to_numpy().tolist()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
-master_df = master_df.filter(regex='percentage')
-#master_df = master_df.drop(columns=columns_drop)
-X = np.round(master_df.to_numpy(), 3).tolist()
+#master_df = master_df.filter(regex='percentage')
+master_df = master_df.drop(columns=columns_drop)
+X = np.round(master_df.to_numpy(), 2).tolist()
 preds = []
-home_team = 'NOTRE-DAME'
-away_team = "MICHIGAN-STATE"
+home_team = 'MARYLAND'
+away_team = "MIAMI-FL"
 predict_X = get_game(home_team, away_team)
 for x in range(0, 100):
     X_train, X_test, y_train, y_test = train_test_split(X, y)
