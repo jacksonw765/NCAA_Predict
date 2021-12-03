@@ -8,7 +8,7 @@ columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_win
                 'games_played_2', 'home_losses_2', 'home_wins_2', 'losses_2', 'wins_2',]
 
 
-def get_game(home_team, away_team):
+def get_game(home_team, away_team, location=2):
     df_teams = pd.read_csv('teams2.csv')
     df_teams_columns = df_teams.columns.tolist()
     df_teams_columns_new = []
@@ -20,10 +20,9 @@ def get_game(home_team, away_team):
     team_2.columns = df_teams_columns_new
     append_team = team_1.reset_index(drop=True).merge(team_2.reset_index(drop=True), left_index=True, right_index=True)
     #append_team = append_team.filter(regex='percentage')
-    append_team["location"] = [2]
+    append_team["location"] = [location]
     append_team = append_team.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0', 'Unnamed: 0_2'])
     append_team = append_team.drop(columns=columns_drop)
-
     return append_team
 
 
@@ -32,17 +31,17 @@ y = master_df[['points_for', 'points_against']].to_numpy().tolist()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
 #master_df = master_df.filter(regex='percentage')
 master_df = master_df.drop(columns=columns_drop)
-X = np.round(master_df.to_numpy(), 2).tolist()
+X = np.round(master_df.to_numpy(), 4).tolist()
 preds = []
-home_team = 'MARYLAND'
-away_team = "MIAMI-FL"
+away_team = "CINCINNATI"
+home_team = 'MIAMI-OH'
 predict_X = get_game(home_team, away_team)
 for x in range(0, 100):
     X_train, X_test, y_train, y_test = train_test_split(X, y)
     model = LinearRegression()
     results = model.fit(X_train, y_train)
-    predictions = model.predict(predict_X)
-    pred = np.round(predictions, 0).astype(int).tolist()
+    predictions = model.predict(predict_X.to_numpy())
+    pred = np.round(predictions, 0).tolist()
     preds.append(pred[0])
 
 df = pd.DataFrame(preds, columns=[home_team, away_team])
