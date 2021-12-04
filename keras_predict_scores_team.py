@@ -2,7 +2,6 @@ import pandas as pd
 from sklearn.linear_model import *
 from sklearn.model_selection import train_test_split
 import numpy as np
-import math
 
 columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_wins', 'games_played', 'home_losses',
                 'home_wins', 'losses', 'wins',  'away_losses_2', 'away_wins_2', 'conference_losses_2', 'conference_wins_2',
@@ -34,10 +33,11 @@ master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 
 master_df = master_df.drop(columns=columns_drop)
 X = np.round(master_df.to_numpy(), 2).tolist()
 preds = []
-away_team = "MEMPHIS"
-home_team = 'MISSISSIPPI'
+num_sim = 100
+away_team = "SOUTHERN-CALIFORNIA"
+home_team = "WASHINGTON-STATE"
 predict_X = get_game(home_team, away_team)
-for x in range(0, 150):
+for x in range(0, num_sim):
     X_train, X_test, y_train, y_test = train_test_split(X, y)
     model = LinearRegression()
     results = model.fit(X_train, y_train)
@@ -47,5 +47,6 @@ for x in range(0, 150):
         preds.append(pred[0])
 
 df = pd.DataFrame(preds, columns=[home_team, away_team])
-print(home_team + ": " + str(round(df[home_team].mean(), 2)))
-print(away_team + ": " + str(round(df[away_team].mean(),2)))
+print(home_team + ": " + str(round(df[home_team].mean(), 0)))
+print(away_team + ": " + str(round(df[away_team].mean(),0)))
+print(str(round((float(len(preds)/num_sim)), 2)))
