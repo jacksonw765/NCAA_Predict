@@ -24,18 +24,19 @@ for team in all_teams:
             if team_name in all_teams:
                 df_sch_select = df_sch[df_sch.opponent_abbr == opponent]
                 location = df_sch_select['location'].values.tolist()[0]
+                location_home, location_away, location_neutral = 0, 0, 0
                 if location == "Away":
-                    location = 0
+                    location_away = 1
                 elif location == "Home":
-                    location = 2
+                    location_home = 1
                 elif location == "Neutral":
-                    location = 1
+                    location_neutral = 1
                 result_arr = [df_sch_select['points_for'].values.tolist()[0],
                               df_sch_select['points_against'].values.tolist()[0],
-                              location]
+                              location_home, location_away, location_neutral]
                 opp_df = df_teams[df_teams.abbreviation == team_name]
                 opp_df.columns = df_teams_columns_new
-                result = pd.DataFrame([result_arr], columns=['points_for', 'points_against', 'location'])
+                result = pd.DataFrame([result_arr], columns=['points_for', 'points_against', 'location_home', 'location_away', 'location_neutral'])
                 append_team = main_team.reset_index(drop=True).merge(opp_df.reset_index(drop=True),
                                                                      left_index=True, right_index=True)
                 append_team = pd.concat([append_team, result], axis=1, join='inner')
