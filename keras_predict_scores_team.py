@@ -17,7 +17,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_wins', 'games_played', 'home_losses',
                 'home_wins', 'losses', 'wins',  'away_losses_2', 'away_wins_2', 'conference_losses_2', 'conference_wins_2',
-                'games_played_2', 'home_losses_2', 'home_wins_2', 'losses_2', 'wins_2',]
+                'games_played_2', 'home_losses_2', 'home_wins_2', 'losses_2', 'wins_2', 'minutes_played', 'minutes_played_2']
 
 
 def get_game(home_team, away_team, location=2):
@@ -71,7 +71,7 @@ def simulate_game(team, predict_data):
         predictions = model.predict(predict_data.to_numpy())
         pred = np.round(predictions, 0).tolist()
         preds.append(pred)
-    df = pd.DataFrame(preds, columns=[team])
+    df = pd.DataFrame(preds[0], columns=[team])
     return int(round(df[team].mean(), 0))
 
 
