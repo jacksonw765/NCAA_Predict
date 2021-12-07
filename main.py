@@ -61,40 +61,54 @@ def simulate_game(team, predict_data):
     for x in range(0, num_sim):
 
         X_train, X_test, y_train, y_test = train_test_split(X, y)
-        train = tf.data.Dataset.from_tensor_slices((X_train, y_train))
-        train = train.repeat().shuffle(1000).batch(32)
-        test = tf.data.Dataset.from_tensor_slices((X_test, y_test)).batch(1)
         model = tf.keras.Sequential([
-            #tf.keras.Input((143,)),
-            tf.keras.layers.LSTM(143, return_sequences=True, input_shape=(1, 143, 1)),
-            # tf.keras.layers.LSTM(48, return_sequences=False),
-            # tf.keras.layers.Dense(64, activation=tf.nn.relu, input_shape=(140,)),
-            # #tf.keras.Input((48,)),
-            # #tf.keras.layers.Conv2D(filters=32, kernel_size=(1, 8), data_format="channels_first", activation="relu"),
-            # #tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(5000, activation=tf.nn.relu),
-            tf.keras.layers.Dense(5000, activation=tf.nn.relu),
-            tf.keras.layers.Dense(1, activation=tf.nn.softmax)
+            # tf.keras.layers.Dense(5720, input_dim=143, ),
+            # tf.keras.layers.PReLU(),
+            # tf.keras.layers.BatchNormalization(),
+            # tf.keras.layers.Dropout(0.4),
+            #
+            # tf.keras.layers.Dense(2860, ),
+            # tf.keras.layers.PReLU(),
+            # tf.keras.layers.BatchNormalization(),
+            # tf.keras.layers.Dropout(0.2),
+            #
+            # tf.keras.layers.Dense(1430, ),
+            # tf.keras.layers.PReLU(),
+            # tf.keras.layers.BatchNormalization(),
+            # tf.keras.layers.Dropout(0.2),
+            #
+            tf.keras.layers.Dense(572, input_dim=143),
+            tf.keras.layers.PReLU(),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dropout(0.4),
+
+            tf.keras.layers.Dense(286,),
+            tf.keras.layers.PReLU(),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dropout(0.2),
+
+            tf.keras.layers.Dense(1, ),
         ])
-        optimizer = tf.keras.optimizers.Adam(
-            learning_rate=0.01, beta_1=0.9, beta_2=0.99, epsilon=1e-05, amsgrad=False,
-            name='Adam')
 
         # Model compiling settings
-        model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
+        #model.compile(loss='mse', optimizer='adadelta')
+        model.compile(loss='mse', optimizer='adadelta')
 
-        model.fit(X_train, y_train, validation_data=X_test, steps_per_epoch=100, epochs=2)
-        predict_X = predict_data.to_numpy().tolist()
-        predictions = model.predict(predict_X)
+        model.fit(X_train, y_train, validation_data=X_test, steps_per_epoch=100, epochs=30000)
+        model.save('model.h5')
+        predict_X = predict_data.to_numpy()
+        predictions = model.predict([predict_X])
         # for pred_dict, expected in zip(predictions, predict_true_labels):
         #     predicted_index = pred_dict.argmax()
         #     probability = pred_dict.max()
         #     print(f"Prediction is {predicted_index} ({100 * probability:.1f}%), expected {expected}")
         preds.append(predictions)
-    df = pd.DataFrame(preds, columns=[team])
-    return int(round(df[team].mean(), 0))
+    df = pd.DataFrame([preds], columns=[team])
+    return int(df[team].mean())
 
-print(team1 + ": " + str(simulate_game(team1, predict_X_1)))
-print(team2 + ": " + str(simulate_game(team2, predict_X_2)))
+output = team1 + ": " + str(simulate_game(team1, predict_X_1))
+output2 = team2 + ": " + str(simulate_game(team2, predict_X_2))
+print(output)
+print(output2)
 
 
