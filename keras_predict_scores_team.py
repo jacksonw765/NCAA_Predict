@@ -1,19 +1,7 @@
 import pandas as pd
-#import xgboost as xgb
-#from sklearn import preprocessing
-#from sklearn.impute import SimpleImputer
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import *
-#from sklearn.metrics import r2_score, mean_squared_error
-from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 import numpy as np
-
-#from sklearn.pipeline import Pipeline
-#from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler
+from get_game_schedule import get_schedules_for_date
 from xgboost import XGBRegressor
 
 columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_wins', 'games_played', 'home_losses',
@@ -53,12 +41,9 @@ master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 
 master_df = master_df.drop(columns=columns_drop)
 X = np.round(master_df.to_numpy(), 2)
 
-num_sim = 1000
-team1 = "EASTERN-KENTUCKY"
-team2 = "SOUTHERN-CALIFORNIA"
+away_team, home_team = get_schedules_for_date(20211208)
 
-predict_X_1 = get_game(team1, team2, location=0)
-predict_X_2 = get_game(team2, team1, location=2)
+num_sim = 10
 
 def simulate_game(team, predict_data):
     preds = []
@@ -66,17 +51,17 @@ def simulate_game(team, predict_data):
         X_train, X_test, y_train, y_test = train_test_split(X, y)
         #model = LogisticRegression(max_iter=10000, penalty="l2", fit_intercept=False, multi_class="ovr", C=1, solver = 'lbfgs')
         #model = RandomForestRegressor(n_estimators=200)
-        model = LinearRegression()
-        # model = XGBRegressor(n_estimators=1000, learning_rate=0.02,
-        #                     gamma=2,
-        #                     max_depth=None,
-        #                     min_child_weight=1,
-        #                     colsample_bytree=0.5,
-        #                     subsample=0.8,
-        #                     reg_alpha=1,
-        #                     objective='reg:squarederror',
-        #                     base_score = 7.76
-        #                      )
+        #model = LinearRegression()
+        model = XGBRegressor(n_estimators=1000, learning_rate=0.02,
+                            gamma=2,
+                            max_depth=None,
+                            min_child_weight=1,
+                            colsample_bytree=0.5,
+                            subsample=0.8,
+                            reg_alpha=1,
+                            objective='reg:squarederror',
+                            base_score = 7.76
+                             )
         model.fit(X_train, y_train)
         #print(model.score(X_train, y_train))
         predictions = model.predict(predict_data.to_numpy())
@@ -85,7 +70,16 @@ def simulate_game(team, predict_data):
     df = pd.DataFrame(preds[0], columns=[team])
     return int(round(df[team].mean(), 0))
 
+#team1 = "TEXAS-EL-PASO"
+#team2 = "KANSAS"
 
-print(team1 + ": " + str(simulate_game(team1, predict_X_1)))
-print(team2 + ": " + str(simulate_game(team2, predict_X_2)))
 
+for team1, team2 in zip(away_team, home_team):
+    try:
+        predict_X_1 = get_game(team1, team2, location=0)
+        predict_X_2 = get_game(team2, team1, location=2)
+        print(team1 + ": " + str(simulate_game(team1, predict_X_1)))
+        print(team2 + ": " + str(simulate_game(team2, predict_X_2)))
+        print('\n')
+    except Exception as e:
+        print("Failed " + team1, team2)
