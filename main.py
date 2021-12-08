@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import keras.backend as K
 from keras.applications.densenet import layers
 from keras.optimizer_v2.adam import Adam
 from sklearn.model_selection import train_test_split
@@ -39,13 +40,23 @@ def get_game(home_team, away_team, location=2):
     location_df = pd.DataFrame([location_data], columns=['location_home', 'location_away', 'location_neutral'])
     append_team = append_team.reset_index(drop=True).merge(location_df.reset_index(drop=True), left_index=True,
                                                            right_index=True)
-    return append_team
+    return append_team.filter(regex='percentage')
 
 
-master_df = pd.read_csv('team_list_scores2021.csv')
+def f1_metric(y_true, y_pred):
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    precision = true_positives / (predicted_positives + K.epsilon())
+    recall = true_positives / (possible_positives + K.epsilon())
+    f1_val = 2 * (precision * recall) / (precision + recall + K.epsilon())
+    return f1_val
+
+
+master_df = pd.read_csv('team_list_scores2020.csv')
 y = master_df['points_for'].to_numpy().tolist()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
-master_df = master_df.drop(columns=columns_drop)
+master_df = master_df.drop(columns=columns_drop).filter(regex='percentage')
 #X = np.round(master_df.to_numpy(), 2).tolist()
 X = master_df.to_numpy().tolist()
 
@@ -60,42 +71,65 @@ def simulate_game(team, predict_data):
     preds = []
     for x in range(0, num_sim):
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y)
-        model = tf.keras.Sequential([
-            # tf.keras.layers.Dense(5720, input_dim=143, ),
-            # tf.keras.layers.PReLU(),
-            # tf.keras.layers.BatchNormalization(),
-            # tf.keras.layers.Dropout(0.4),
-            #
-            # tf.keras.layers.Dense(2860, ),
-            # tf.keras.layers.PReLU(),
-            # tf.keras.layers.BatchNormalization(),
-            # tf.keras.layers.Dropout(0.2),
-            #
-            # tf.keras.layers.Dense(1430, ),
-            # tf.keras.layers.PReLU(),
-            # tf.keras.layers.BatchNormalization(),
-            # tf.keras.layers.Dropout(0.2),
-            #
-            tf.keras.layers.Dense(572, input_dim=143),
-            tf.keras.layers.PReLU(),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Dropout(0.4),
-
-            tf.keras.layers.Dense(286,),
-            tf.keras.layers.PReLU(),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Dropout(0.2),
-
-            tf.keras.layers.Dense(1, ),
-        ])
+        # X_train, X_test, y_train, y_test = train_test_split(X, y)
+        # model = tf.keras.Sequential([
+        #     tf.keras.layers.Input(50),
+        #
+        #     tf.keras.layers.Dense(286, ),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.2),
+        #
+        #     tf.keras.layers.Dense(572),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.4),
+        #
+        #     tf.keras.layers.Dense(1430, ),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.2),
+        #
+        #     tf.keras.layers.Dense(2860, ),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.2),
+        #
+        #     tf.keras.layers.Dense(5720, ),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.2),
+        #
+        #     tf.keras.layers.Dense(2860, ),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.2),
+        #
+        #     tf.keras.layers.Dense(1430, ),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.2),
+        #
+        #     tf.keras.layers.Dense(572),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.4),
+        #
+        #     tf.keras.layers.Dense(286,),
+        #     tf.keras.layers.PReLU(),
+        #     tf.keras.layers.BatchNormalization(),
+        #     tf.keras.layers.Dropout(0.2),
+        #
+        #     tf.keras.layers.Dense(1, ),
+        # ])
 
         # Model compiling settings
         #model.compile(loss='mse', optimizer='adadelta')
-        model.compile(loss='mse', optimizer='adadelta')
+        #model.compile(loss='mse', optimizer='adam', metrics=['accuracy', f1_metric])
 
-        model.fit(X_train, y_train, validation_data=X_test, steps_per_epoch=100, epochs=30000)
-        model.save('model.h5')
+        #model.fit(X_train, y_train, validation_data=X_test, steps_per_epoch=100, epochs=2048)
+        #model.save('model.h5')
+        model = tf.keras.models.load_model('model.h5')
         predict_X = predict_data.to_numpy()
         predictions = model.predict([predict_X])
         # for pred_dict, expected in zip(predictions, predict_true_labels):

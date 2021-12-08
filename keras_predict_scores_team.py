@@ -14,6 +14,7 @@ import numpy as np
 #from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
+from xgboost import XGBRegressor
 
 columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_wins', 'games_played', 'home_losses',
                 'home_wins', 'losses', 'wins',  'away_losses_2', 'away_wins_2', 'conference_losses_2', 'conference_wins_2',
@@ -46,15 +47,15 @@ def get_game(home_team, away_team, location=2):
     return append_team
 
 
-master_df = pd.read_csv('team_list_scores2021.csv')
-y = master_df['points_for'].to_numpy().tolist()
+master_df = pd.read_csv('team_list_scores2022.csv')
+y = master_df['points_for'].to_numpy()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
 master_df = master_df.drop(columns=columns_drop)
-X = np.round(master_df.to_numpy(), 2).tolist()
+X = np.round(master_df.to_numpy(), 2)
 
-num_sim = 1
-team1 = "ALABAMA"
-team2 = "GONZAGA"
+num_sim = 1000
+team1 = "EASTERN-KENTUCKY"
+team2 = "SOUTHERN-CALIFORNIA"
 
 predict_X_1 = get_game(team1, team2, location=0)
 predict_X_2 = get_game(team2, team1, location=2)
@@ -66,8 +67,18 @@ def simulate_game(team, predict_data):
         #model = LogisticRegression(max_iter=10000, penalty="l2", fit_intercept=False, multi_class="ovr", C=1, solver = 'lbfgs')
         #model = RandomForestRegressor(n_estimators=200)
         model = LinearRegression()
+        # model = XGBRegressor(n_estimators=1000, learning_rate=0.02,
+        #                     gamma=2,
+        #                     max_depth=None,
+        #                     min_child_weight=1,
+        #                     colsample_bytree=0.5,
+        #                     subsample=0.8,
+        #                     reg_alpha=1,
+        #                     objective='reg:squarederror',
+        #                     base_score = 7.76
+        #                      )
         model.fit(X_train, y_train)
-        print(model.score(X_train, y_train))
+        #print(model.score(X_train, y_train))
         predictions = model.predict(predict_data.to_numpy())
         pred = np.round(predictions, 0).tolist()
         preds.append(pred)

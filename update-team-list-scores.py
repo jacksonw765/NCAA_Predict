@@ -45,4 +45,4 @@ for team in all_teams:
         print("error: " + fixed)
 
 master_df = pd.concat(master_df)
-master_df.to_csv('team_list_scores2021.csv')
+master_df.to_csv('team_list_scores2022.csv')
