@@ -11,11 +11,9 @@ columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_win
 
 def get_game(home_team, away_team, location=2):
     df_teams = pd.read_csv('teams2022.csv')
-    df_teams_columns_new = []
     #location = pd.DataFrame([2, 0], columns=['location'])
     team_1 = df_teams[df_teams['abbreviation'] == home_team]
     team_2 = df_teams[df_teams['abbreviation'] == away_team]
-    team_2.columns = df_teams_columns_new
     append_team = team_1.reset_index(drop=True).merge(team_2.reset_index(drop=True), left_index=True, right_index=True)
     #append_team = append_team.filter(regex='percentage')
     location_home, location_away, location_neutral = 0, 0, 0
@@ -25,18 +23,18 @@ def get_game(home_team, away_team, location=2):
         location_away = 1
     else:
         location_home = 1
-    append_team = append_team.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0', 'Unnamed: 0_2'])
-    append_team = append_team.drop(columns=columns_drop)
+    append_team = append_team.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0', 'Unnamed: 0_2'], errors='ignore')
+    append_team = append_team.drop(columns=columns_drop, errors='ignore')
     location_df = pd.DataFrame([[location_home, location_away, location_neutral]], columns=['location_home', 'location_away', 'location_neutral'])
     append_team = append_team.reset_index(drop=True).merge(location_df.reset_index(drop=True), left_index=True, right_index=True)
     return append_team
 
 
-master_df = pd.read_csv('team_list_scores2021.csv')
+master_df = pd.read_csv('teams_list_boxscores.csv')
 y = master_df[['points_for', 'points_against']].to_numpy().tolist()
-master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
-#master_df = master_df.filter(regex='percentage')
-master_df = master_df.drop(columns=columns_drop)
+master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2',
+                                    'points_for', 'points_against', 'team1', 'team2'], errors='ignore')
+master_df = master_df.drop(columns=columns_drop, errors='ignore')
 X = np.round(master_df.to_numpy(), 2).tolist()
 preds = []
 away_team = "TENNESSEE"

@@ -57,10 +57,12 @@ for team in Teams(2022):
                                                          'location_home', 'location_away', 'location_neutral'])
             append_df = score_df.reset_index(drop=True).merge(result.reset_index(drop=True),
                                                               left_index=True, right_index=True)
-            master_df.append(append_df)
+            append_df = append_df.drop(columns=['team1_ranking', 'team2_ranking'])
+            if not append_df.isna().values.any():
+                master_df.append(append_df)
     except Exception as e:
         print(e)
 
 df = pd.concat(master_df)
-df = df.drop(columns=['team1_ranking', 'team2_ranking', 'team1_wins', 'team2_wins', 'team1_points', 'team2_points'])
+df = df.drop(columns=['team1_ranking', 'team2_ranking', 'team1_wins', 'team2_wins', 'team1_points', 'team2_points'], errors='ignore')
 df.to_csv('teams_list_boxscores.csv')
