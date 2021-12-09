@@ -25,5 +25,5 @@ def get_schedules_for_date(date):
     return away_teams, home_teams
 
 def _clean_str(span):
-    return str(span.strip()).replace(' ', '-').replace('&', '').replace('.', '').replace("'", "").upper()
+    return str(span.split('#')[0].strip()).replace(' ', '-').replace('&', '').replace('.', '').replace("'", "").upper()
 
