@@ -17,8 +17,8 @@ def get_schedules_for_date(date):
         table_data = table.find_all("tr")
         for tr in table_data:
             spans = tr.find_all("span")
-            home_teams.append(_clean_str(spans[0].text))
-            away_teams.append(_clean_str(spans[-1].text))
+            home_teams.append(_clean_str(spans[-1].text))
+            away_teams.append(_clean_str(spans[0].text))
     away_teams.pop(0)
     home_teams.pop(0)
 
