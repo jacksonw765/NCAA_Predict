@@ -27,35 +27,19 @@ master_df = master_df.drop(columns=columns_drop)
 X = np.round(master_df.to_numpy(), 2)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y)
-X_train = X_train.reshape(-1, X_train.shape[0], X_train.shape[1])
-X_test = X_test.reshape(-1, X_test.shape[0], X_test.shape[1])
-y_train = y_train.reshape(-1, y_train.shape[0])
-y_test = y_test.reshape(1, y_test.shape[0],)
-#X_train = X_train.reshape(-1, )
 model = tf.keras.Sequential([
+    tf.keras.layers.Input(147),
 
-    #tf.keras.layers.SimpleRNN(512, return_sequences=True, activation='relu'),
-    tf.keras.layers.LSTM(100, input_shape=(X_train.shape[1], X_train.shape[2]), return_sequences=True),
-    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(286, ),
+    tf.keras.layers.PReLU(),
     tf.keras.layers.BatchNormalization(),
-    tf.keras.layers.LSTM(5, return_sequences=False),
-    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dropout(0.4),
 
-    # tf.keras.layers.Flatten(),
-    # tf.keras.layers.Dense(286, ),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.2),
-    #
-    # tf.keras.layers.Dense(572),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.4),
-    #
-    # tf.keras.layers.Dense(1430, ),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(572),
+    tf.keras.layers.PReLU(),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
 
     # tf.keras.layers.Dense(572,),
     # tf.keras.layers.PReLU(),
@@ -77,26 +61,26 @@ model = tf.keras.Sequential([
     # tf.keras.layers.BatchNormalization(),
     # tf.keras.layers.Dropout(0.4),
 
-    # tf.keras.layers.Dense(2860, ),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(5000, ),
+    tf.keras.layers.PReLU(),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
     #
-    # tf.keras.layers.Dense(1430, ),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(1430, ),
+    tf.keras.layers.PReLU(),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.4),
     #
     # tf.keras.layers.Dense(572),
     # tf.keras.layers.PReLU(),
     # tf.keras.layers.BatchNormalization(),
     # tf.keras.layers.Dropout(0.4),
 
-    # tf.keras.layers.Dense(286,),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.2),
-    # tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(572,),
+    tf.keras.layers.PReLU(),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Flatten(),
 
     tf.keras.layers.Dense(1, ),
 ])
@@ -104,11 +88,11 @@ model = tf.keras.Sequential([
 #model.compile(loss='mse', optimizer='adadelta')
 model.compile(loss='mse', optimizer='rmsprop', metrics=['accuracy', f1_metric])
 
-model.fit(X_train, y_train, validation_data=(X_test,y_test), steps_per_epoch=100, epochs=120, batch_size=24)
+model.fit(X_train, y_train, validation_data=(X_test,y_test), steps_per_epoch=100, epochs=4000)
 json_file = model.to_json()
-with open('lstm.json', "w") as file:
+with open('dense.json', "w") as file:
     file.write(json_file)
-model.save_weights('lstm.h5')
+model.save_weights('dense.h5')
 print('model trained')
 
 # output = team1 + ": " + str(simulate_game(team1, predict_X_1))

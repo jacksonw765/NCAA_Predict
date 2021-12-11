@@ -57,7 +57,7 @@ def f1_metric(y_true, y_pred):
     return f1_val
 
 
-master_df = pd.read_csv('team_list_scores2022_w.csv')
+master_df = pd.read_csv('team_list_scores2022.csv')
 y = master_df['points_for'].to_numpy().tolist()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
 master_df = master_df.drop(columns=columns_drop)
@@ -65,12 +65,12 @@ master_df = master_df.drop(columns=columns_drop)
 X = master_df.to_numpy().tolist()
 
 num_sim = 1
-team1 = "APPALACHIAN-STATE"
-team2 = "FURMAN"
-
-predict_X_1 = get_game(team1, team2, location=0)
-predict_X_2 = get_game(team2, team1, location=2)
-
+# team1 = "VERMONT"
+# team2 = "BROWN"
+#
+# predict_X_1 = get_game(team1, team2, location=0)
+# predict_X_2 = get_game(team2, team1, location=2)
+#
 def simulate_game(team, predict_data):
     preds = []
     file = open('new_bad_model', 'r')
@@ -83,43 +83,46 @@ def simulate_game(team, predict_data):
     preds.append(predictions)
     df = pd.DataFrame([preds], columns=[team])
     return int(df[team].mean())
+#
+# output = team1 + ": " + str(simulate_game(team1, predict_X_1))
+# output2 = team2 + ": " + str(simulate_game(team2, predict_X_2))
+# print(output)
+# print(output2)
 
-output = team1 + ": " + str(simulate_game(team1, predict_X_1))
-output2 = team2 + ": " + str(simulate_game(team2, predict_X_2))
-print(output)
-print(output2)
+teams_1 = [{"APPALACHIAN-STATE": 65}, {'VERMONT': 70}, {"MURRAY-STATE": 74}, {"LOYOLA-IL": 69}, {'DEPAUL': 62}, {"MILWAUKEE": 54}]
+teams_2 = [{"FURMAN": 73}, {'BROWN': 65}, {"MEMPHIS": 72}, {'MEMPHIS': 72}, {'LOUISVILLE': 55}, {"COLORADO": 65}]
 
-# results = []
-# score_results = []
-# for team1_obj, team2_obj in zip(teams_1, teams_2):
-#     team1 = list(team1_obj.keys())[0]
-#     team2 = list(team2_obj.keys())[0]
-#     did_away_win = False
-#     did_away_win_pred = False
-#     team1_score = list(team1_obj.values())[0]
-#     team2_score = list(team2_obj.values())[0]
-#     if team1_score > team2_score:
-#         did_away_win = True
-#     try:
-#         predict_X_1 = get_game(team1, team2, location=0)
-#         predict_X_2 = get_game(team2, team1, location=2)
-#         team1_pred = simulate_game(team1, predict_X_1)
-#         team2_pred = simulate_game(team2, predict_X_2)
-#         team1_dif = team1_score - team1_pred
-#         team2_dif = team2_score - team2_pred
-#         if team1_pred > team2_pred:
-#             did_away_win = True
-#         print(team1 + ": " + str(team1_dif))
-#         print(team2 + ": " + str(team2_dif))
-#         result = (did_away_win == did_away_win_pred)
-#         print(result)
-#         results.append(result)
-#         score_results.append(abs(team1_dif))
-#         score_results.append(abs(team2_dif))
-#         print('\n')
-#     except Exception as e:
-#         print("Failed " + team1, team2)
-# print(float(results.count(True)/len(results)))
-# print(str(statistics.mean((score_results))))
+results = []
+score_results = []
+for team1_obj, team2_obj in zip(teams_1, teams_2):
+    team1 = list(team1_obj.keys())[0]
+    team2 = list(team2_obj.keys())[0]
+    did_away_win = False
+    did_away_win_pred = False
+    team1_score = list(team1_obj.values())[0]
+    team2_score = list(team2_obj.values())[0]
+    if team1_score > team2_score:
+        did_away_win = True
+    try:
+        predict_X_1 = get_game(team1, team2, location=0)
+        predict_X_2 = get_game(team2, team1, location=2)
+        team1_pred = simulate_game(team1, predict_X_1)
+        team2_pred = simulate_game(team2, predict_X_2)
+        team1_dif = team1_score - team1_pred
+        team2_dif = team2_score - team2_pred
+        if team1_pred > team2_pred:
+            did_away_win = True
+        print(team1 + ": " + str(team1_dif))
+        print(team2 + ": " + str(team2_dif))
+        result = (did_away_win == did_away_win_pred)
+        print(result)
+        results.append(result)
+        score_results.append(abs(team1_dif))
+        score_results.append(abs(team2_dif))
+        print('\n')
+    except Exception as e:
+        print("Failed " + team1, team2)
+print(float(results.count(True)/len(results)))
+print(str(statistics.mean((score_results))))
 
 

@@ -27,4 +27,4 @@ for team in Teams(year):
         print("FAILED" + str(team))
 print(len(team_df))
 df = pd.concat(team_df)
-df.to_csv('teams_weights{}.csv'.format(year))
+df.to_csv('teams{}.csv'.format(year))

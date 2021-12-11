@@ -85,51 +85,48 @@ def simulate_game(team, predict_data):
     df = pd.DataFrame(preds[0], columns=[team])
     return int(round(df[team].mean(), 0))
 
-teams_1 = [{'NORTH-FLORIDA': 55}, {'INDIANA': 59}, {"MICHIGAN-STATE":75}, {"BALL-STATE":74},
-           {'UTAH-STATE':71}, {'WYOMING':65}, {"HOLY-CROSS": 59}, {'UTAH': 62}, {'DAYTON': 69}, {'MARQUETTE': 64},
-           {'WEBER-STATE': 60}, {"FRESNO-STATE": 63}]
-teams_2 = [{'FLORIDA': 85}, {'WISCONSIN': 64}, {"MINNESOTA":67}, {"XAVIER":85},
-           {'BRIGHAM-YOUNG':82}, {'ARIZONA':94}, {'FAIRFIELD': 74}, {"TEXAS-CHRISTIAN": 76}, {'SOUTHERN-METHODIST': 77},
-           {"KANSAS-STATE": 63}, {"WASHINGTON-STATE": 94}, {"SAN-FRANCISCO": 71}]
-# team1 = "MARQUETTE"
-# team2 = "KANSAS-STATE"
-#
-# predict_X_1 = get_game(team1, team2, location=0)
-# predict_X_2 = get_game(team2, team1, location=2)
-#
-# print(team1 + ": " + str(simulate_game(team1, predict_X_1)))
-# print(team2 + ": " + str(simulate_game(team2, predict_X_2)))
 
-#away_team, home_team = get_schedules_for_date(20211208)
-results = []
-score_results = []
-for team1_obj, team2_obj in zip(teams_1, teams_2):
-    team1 = list(team1_obj.keys())[0]
-    team2 = list(team2_obj.keys())[0]
-    did_away_win = False
-    did_away_win_pred = False
-    team1_score = list(team1_obj.values())[0]
-    team2_score = list(team2_obj.values())[0]
-    if team1_score > team2_score:
-        did_away_win = True
-    try:
-        predict_X_1 = get_game(team1, team2, location=0)
-        predict_X_2 = get_game(team2, team1, location=2)
-        team1_pred = simulate_game(team1, predict_X_1)
-        team2_pred = simulate_game(team2, predict_X_2)
-        team1_dif = team1_score - team1_pred
-        team2_dif = team2_score - team2_pred
-        if team1_pred > team2_pred:
-            did_away_win = True
-        print(team1 + ": " + str(team1_dif))
-        print(team2 + ": " + str(team2_dif))
-        result = (did_away_win == did_away_win_pred)
-        print(result)
-        results.append(result)
-        score_results.append(abs(team1_dif))
-        score_results.append(abs(team2_dif))
-        print('\n')
-    except Exception as e:
-        print("Failed " + team1, team2)
-print(float(results.count(True)/len(results)))
-print(str(statistics.mean((score_results))))
+team1 = "CINCINNATI"
+team2 = "XAVIER"
+
+predict_X_1 = get_game(team1, team2, location=0)
+predict_X_2 = get_game(team2, team1, location=2)
+
+print(team1 + ": " + str(simulate_game(team1, predict_X_1)))
+print(team2 + ": " + str(simulate_game(team2, predict_X_2)))
+
+# teams_1 = [{"APPALACHIAN-STATE": 65}, {'VERMONT': 70}, {"MURRAY-STATE": 74}, {"LOYOLA-IL": 69}, {'DEPAUL': 62}]
+# teams_2 = [{"FURMAN": 73}, {'BROWN': 65}, {"MEMPHIS": 72}, {'MEMPHIS': 72}, {'LOUISVILLE': 55}]
+#
+# results = []
+# score_results = []
+# for team1_obj, team2_obj in zip(teams_1, teams_2):
+#     team1 = list(team1_obj.keys())[0]
+#     team2 = list(team2_obj.keys())[0]
+#     did_away_win = False
+#     did_away_win_pred = False
+#     team1_score = list(team1_obj.values())[0]
+#     team2_score = list(team2_obj.values())[0]
+#     if team1_score > team2_score:
+#         did_away_win = True
+#     try:
+#         predict_X_1 = get_game(team1, team2, location=0)
+#         predict_X_2 = get_game(team2, team1, location=2)
+#         team1_pred = simulate_game(team1, predict_X_1)
+#         team2_pred = simulate_game(team2, predict_X_2)
+#         team1_dif = team1_score - team1_pred
+#         team2_dif = team2_score - team2_pred
+#         if team1_pred > team2_pred:
+#             did_away_win = True
+#         print(team1 + ": " + str(team1_dif))
+#         print(team2 + ": " + str(team2_dif))
+#         result = (did_away_win == did_away_win_pred)
+#         print(result)
+#         results.append(result)
+#         score_results.append(abs(team1_dif))
+#         score_results.append(abs(team2_dif))
+#         print('\n')
+#     except Exception as e:
+#         print("Failed " + team1, team2)
+# print(float(results.count(True)/len(results)))
+# print(str(statistics.mean((score_results))))
