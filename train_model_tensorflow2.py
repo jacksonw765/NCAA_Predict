@@ -19,7 +19,7 @@ def f1_metric(y_true, y_pred):
     return f1_val
 
 
-master_df = pd.read_csv('team_list_scores2022.csv')
+master_df = pd.read_csv('teams_list_boxscores2022.csv')
 y = master_df['points_for'].to_numpy()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
 master_df = master_df.drop(columns=columns_drop)
@@ -30,11 +30,11 @@ X_train, X_test, y_train, y_test = train_test_split(X, y)
 model = tf.keras.Sequential([
     tf.keras.layers.Input(147),
 
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(286, ),
-    tf.keras.layers.PReLU(),
-    tf.keras.layers.BatchNormalization(),
-    tf.keras.layers.Dropout(0.4),
+    # tf.keras.layers.Flatten(),
+    # tf.keras.layers.Dense(286, ),
+    # tf.keras.layers.PReLU(),
+    # tf.keras.layers.BatchNormalization(),
+    # tf.keras.layers.Dropout(0.4),
 
     tf.keras.layers.Dense(572),
     tf.keras.layers.PReLU(),
@@ -65,8 +65,13 @@ model = tf.keras.Sequential([
     tf.keras.layers.PReLU(),
     tf.keras.layers.BatchNormalization(),
     tf.keras.layers.Dropout(0.2),
+
+    tf.keras.layers.Dense(9000, ),
+    tf.keras.layers.PReLU(),
+    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Dropout(0.2),
     #
-    tf.keras.layers.Dense(1430, ),
+    tf.keras.layers.Dense(2500, ),
     tf.keras.layers.PReLU(),
     tf.keras.layers.BatchNormalization(),
     tf.keras.layers.Dropout(0.4),
@@ -88,7 +93,7 @@ model = tf.keras.Sequential([
 #model.compile(loss='mse', optimizer='adadelta')
 model.compile(loss='mse', optimizer='rmsprop', metrics=['accuracy', f1_metric])
 
-model.fit(X_train, y_train, validation_data=(X_test,y_test), steps_per_epoch=100, epochs=4000)
+model.fit(X_train, y_train, validation_data=(X_test,y_test), steps_per_epoch=100, epochs=512)
 json_file = model.to_json()
 with open('dense.json', "w") as file:
     file.write(json_file)

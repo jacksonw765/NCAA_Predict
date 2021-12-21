@@ -4,13 +4,14 @@ from sportsipy.ncaab.schedule import Schedule
 from sportsipy.ncaab.teams import Teams
 
 master_df = []
-for team in Teams(2022):
+year = 2022
+for team in Teams(year):
     team_df = team.dataframe
     team_abbr = team_df['abbreviation'].values.tolist()[0]
     fixed = str(team_abbr.strip()).replace(' ', '-').replace('&', '').replace('.', '').replace("'", "").lower()
     print(fixed)
     try:
-        sch = Schedule(fixed, year='2022')
+        sch = Schedule(fixed, year=str(year))
         df_sch = sch.dataframe.dropna(subset=['boxscore_index'])
         df_sch = df_sch[~df_sch.opponent_abbr.str.contains("Non-DI School")]
         df_sch = df_sch[~df_sch.opponent_conference.str.contains("Non-DI School")]
@@ -38,7 +39,7 @@ for team in Teams(2022):
             elif location == "Neutral":
                 location_neutral = 1
                 # really weird way to do this ik should be ashamed to do it this way
-                if team_abbr.lower() in boxscore[i]:
+                if team_abbr.lower() in boxscore:
                     team_1_df = score_df.filter(regex='home')
                     team_1_df.columns = team_1_df.columns.str.replace("home", "team1")
                     team_2_df = score_df.filter(regex='away')
@@ -63,4 +64,4 @@ for team in Teams(2022):
 
 df = pd.concat(master_df)
 df = df.drop(columns=['team1_ranking', 'team2_ranking', 'team1_wins', 'team2_wins', 'team1_points', 'team2_points'])
-df.to_csv('teams_list_boxscores.csv')
+df.to_csv('teams_list_boxscores{}.csv'.format(year))

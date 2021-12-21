@@ -29,8 +29,11 @@ def get_game(home_team, away_team, location=2):
                                                            left_index=True, right_index=True)
     return append_team
 
-
-master_df = pd.read_csv('teams_list_boxscores.csv').dropna()
+dfs = []
+for x in range(2010, 2021):
+    dfs.append(pd.read_csv('teams_list_boxscores{}.csv'.format(x)))
+master_df = pd.concat(dfs)
+#master_df = pd.read_csv('teams_list_boxscores.csv').dropna()
 y = master_df[['points_for', 'points_against']].to_numpy().tolist()
 master_df = master_df.drop(columns=['Unnamed: 0', 'points_for', 'points_against', 'team1', 'team2'], errors='ignore')
 #master_df = master_df.filter(regex='percentage')

@@ -1,7 +1,7 @@
 import pandas as pd
 from sportsipy.ncaab.schedule import Schedule
 
-df_teams = pd.read_csv('teams_weights2022.csv')
+df_teams = pd.read_csv('teams2022.csv')
 df_teams_columns = df_teams.columns.tolist()
 df_teams_columns_new = []
 for x in df_teams_columns:
