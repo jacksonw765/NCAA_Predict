@@ -26,6 +26,7 @@ def get_schedules_for_date(date):
 def get_scores_for_date(date):
     # fill {} with year, month, day so 20211124
     ESPN_URL = 'https://www.espn.com/mens-college-basketball/schedule/_/date/{}/group/50/date/'.format(date)
+    #ESPN_URL = 'https://www.espn.com/mens-college-basketball/scoreboard/_/date/{}'.format(date)
     headers = {'User-Agent': 'Mozilla/5.0'}
     req = requests.get(ESPN_URL, headers=headers)
     soup = BeautifulSoup(req.text, "lxml")

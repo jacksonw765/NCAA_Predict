@@ -2,93 +2,110 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import keras.backend as K
+from keras import regularizers
+from keras.optimizer_v2.gradient_descent import SGD
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 
 columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_wins', 'games_played', 'home_losses',
                 'home_wins', 'losses', 'wins',  'away_losses_2', 'away_wins_2', 'conference_losses_2', 'conference_wins_2',
-                'games_played_2', 'home_losses_2', 'home_wins_2', 'losses_2', 'wins_2',]
+                'games_played_2', 'home_losses_2', 'home_wins_2', 'losses_2', 'wins_2',
+                'team1_losses', 'team2_losses']
 
-
-def f1_metric(y_true, y_pred):
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    precision = true_positives / (predicted_positives + K.epsilon())
-    recall = true_positives / (possible_positives + K.epsilon())
-    f1_val = 2 * (precision * recall) / (precision + recall + K.epsilon())
-    return f1_val
-
-
-master_df = pd.read_csv('team_list_scores2022.csv')
+boxscores2018 = pd.read_csv('teams_list_boxscores2020.csv').dropna()
+boxscores2020 = pd.read_csv('teams_list_boxscores2020.csv').dropna()
+boxscores2021 = pd.read_csv('teams_list_boxscores2021.csv').dropna()
+boxscores2022 = pd.read_csv('teams_list_boxscores2022.csv').dropna()
+master_df = pd.concat([boxscores2021, boxscores2022, boxscores2020, boxscores2018])
 y = master_df['points_for'].to_numpy()
-master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
-master_df = master_df.drop(columns=columns_drop)
+master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',
+                                    'Unnamed: 0_2', 'team1', 'team2', 'points_for', 'points_against'], errors='ignore')
+master_df = master_df.drop(columns=columns_drop, errors='ignore')
 #X = np.round(master_df.to_numpy(), 2).tolist()
 X = np.round(master_df.to_numpy(), 2)
+# scaler = MinMaxScaler()
+# # fit scaler on data
+# scaler.fit(X)
+# # apply transform
+# X = scaler.transform(X)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 model = tf.keras.Sequential([
-    tf.keras.layers.Input(147),
+    tf.keras.layers.Input(73),
 
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(286, ),
-    tf.keras.layers.PReLU(),
-    tf.keras.layers.BatchNormalization(),
-    tf.keras.layers.Dropout(0.4),
-
-    tf.keras.layers.Dense(572),
-    tf.keras.layers.PReLU(),
-    tf.keras.layers.BatchNormalization(),
-    tf.keras.layers.Dropout(0.2),
-
-    # tf.keras.layers.Dense(572,),
+    #tf.keras.layers.Flatten(),
+    # tf.keras.layers.Dense(286, ),
     # tf.keras.layers.PReLU(),
     # tf.keras.layers.BatchNormalization(),
     # tf.keras.layers.Dropout(0.4),
-    #
-    # tf.keras.layers.Dense(200, ),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.2),
-    #
+
+    #tf.keras.layers.Dense(69, input_dim=69,),
+    #tf.keras.layers.PReLU(),
+    #tf.keras.layers.BatchNormalization(),
+    #tf.keras.layers.Dropout(0.1),
+
+    tf.keras.layers.Dense(512,),
+    #tf.keras.layers.Dropout(0.1),
+    # tf.keras.layers.Dense(1000,),
+    # tf.keras.layers.Dropout(0.1),
     # tf.keras.layers.Dense(100,),
+    tf.keras.layers.Dense(1024,),
+    #tf.keras.layers.Dropout(0.1),
+    #tf.keras.layers.Dense(2048,),
+    #tf.keras.layers.Dense(4096,),
+    # tf.keras.layers.Dropout(0.1),
+    # tf.keras.layers.Dense(409,),
+    #tf.keras.layers.Dropout(0.1),
+    #tf.keras.layers.Dense(2048,kernel_regularizer=regularizers.l2(0.00001)),
+    #tf.keras.layers.Dense(4096),
+    # tf.keras.layers.PReLU(),
+    # tf.keras.layers.BatchNormalization(),
+    #tf.keras.layers.Dropout(0.1),
+    #
+    #tf.keras.layers.Dense(2056, kernel_regularizer=regularizers.l2(0.00001)),
+    #tf.keras.layers.PReLU(),
+    #tf.keras.layers.BatchNormalization(),
+    #tf.keras.layers.Dropout(0.2),
+    #
+    #tf.keras.layers.Dense(10000, kernel_regularizer=regularizers.l2(0.00001)),
     # tf.keras.layers.PReLU(),
     # tf.keras.layers.BatchNormalization(),
     # tf.keras.layers.Dropout(0.2),
     #
-    # tf.keras.layers.Dense(50, ),
+    #tf.keras.layers.Dense(512, kernel_regularizer=regularizers.l2(0.00001)),
     # tf.keras.layers.PReLU(),
     # tf.keras.layers.BatchNormalization(),
     # tf.keras.layers.Dropout(0.4),
 
-    tf.keras.layers.Dense(5000, ),
-    tf.keras.layers.PReLU(),
-    tf.keras.layers.BatchNormalization(),
-    tf.keras.layers.Dropout(0.2),
+    #tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=regularizers.l2(0.00001)),
+    #tf.keras.layers.PReLU(),
+    #tf.keras.layers.BatchNormalization(),
+    #tf.keras.layers.Dropout(0.1),
     #
-    tf.keras.layers.Dense(1430, ),
-    tf.keras.layers.PReLU(),
-    tf.keras.layers.BatchNormalization(),
-    tf.keras.layers.Dropout(0.4),
+    #tf.keras.layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(0.00001)),
+    #tf.keras.layers.PReLU(),
+    #tf.keras.layers.BatchNormalization(),
+    #tf.keras.layers.Dropout(0.4),
     #
-    # tf.keras.layers.Dense(572),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.4),
+    #tf.keras.layers.Dense(572),
+    #tf.keras.layers.PReLU(),
+    #tf.keras.layers.BatchNormalization(),
+    #tf.keras.layers.Dropout(0.4),
 
-    tf.keras.layers.Dense(572,),
-    tf.keras.layers.PReLU(),
-    tf.keras.layers.BatchNormalization(),
-    tf.keras.layers.Dropout(0.2),
-    tf.keras.layers.Flatten(),
+    #tf.keras.layers.Dense(572,activation='relu'),
+    #tf.keras.layers.PReLU(),
+    #tf.keras.layers.BatchNormalization(),
+    #tf.keras.layers.Dropout(0.1),
+    #tf.keras.layers.Flatten(),
 
-    tf.keras.layers.Dense(1, ),
+    tf.keras.layers.Dense(1),
 ])
 
 #model.compile(loss='mse', optimizer='adadelta')
-model.compile(loss='mse', optimizer='rmsprop', metrics=['accuracy', f1_metric])
+#opt = SGD(lr=0.01, momentum=0.9)
+model.compile(loss='mse', optimizer='adam', metrics=['mse','mae'])
 
-model.fit(X_train, y_train, validation_data=(X_test,y_test), steps_per_epoch=100, epochs=4000)
+model.fit(X_train, y_train, validation_data=(X_test, y_test), steps_per_epoch=100, epochs=25)
 json_file = model.to_json()
 with open('dense.json', "w") as file:
     file.write(json_file)

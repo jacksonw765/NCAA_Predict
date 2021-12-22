@@ -1,9 +1,11 @@
 import statistics
 
 import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 from xgboost import XGBRegressor
 
 from get_game_schedule import get_scores_for_date
@@ -31,7 +33,7 @@ def get_game(home_team, away_team, location=2):
     else:
         location_home = 1
     append_team = append_team.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0', 'Unnamed: 0_2'])
-    append_team = append_team.drop(columns=columns_drop, errors='ignore')
+    #append_team = append_team.drop(columns=columns_drop, errors='ignore')
     location_data = [location_home, location_away, location_neutral]
     location_df = pd.DataFrame([location_data], columns=['location_home', 'location_away', 'location_neutral'])
     append_team = append_team.reset_index(drop=True).merge(location_df.reset_index(drop=True), left_index=True,
@@ -42,7 +44,7 @@ def get_game(home_team, away_team, location=2):
 master_df = pd.read_csv('team_list_scores2022.csv')
 y = master_df['points_for'].to_numpy()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
-master_df = master_df.drop(columns=columns_drop)
+#master_df = master_df.drop(columns=columns_drop)
 X = np.round(master_df.to_numpy(), 2)
 
 # scaler = MinMaxScaler()
@@ -51,7 +53,7 @@ X = np.round(master_df.to_numpy(), 2)
 # # apply transform
 # X = scaler.transform(X)
 
-num_sim = 15
+num_sim = 500
 # EASTERN-KENTUCKY: 64
 # SOUTHERN-CALIFORNIA: 86
 
@@ -59,17 +61,19 @@ def simulate_game(team, predict_data):
     preds = []
     for x in range(0, num_sim):
         X_train, X_test, y_train, y_test = train_test_split(X, y)
-        #model = LinearRegression(fit_intercept=False, positive=True)
-        model = XGBRegressor(n_estimators=1000, learning_rate=0.02,
-                                                  gamma=2,
-                                                  max_depth=None,
-                                                  min_child_weight=1,
-                                                  colsample_bytree=0.5,
-                                                  subsample=0.8,
-                                                  reg_alpha=1,
-                                                  objective='reg:squarederror',
-                                                  base_score=7.76
-                                                  )
+        model = LinearRegression()
+        # fit_intercept=False, positive=True
+        #model = RandomForestRegressor(n_estimators=300)
+        # model = XGBRegressor(n_estimators=1000, learning_rate=0.02,
+        #                                           gamma=2,
+        #                                           max_depth=None,
+        #                                           min_child_weight=1,
+        #                                           colsample_bytree=0.5,
+        #                                           subsample=0.8,
+        #                                           reg_alpha=1,
+        #                                           objective='reg:squarederror',
+        #                                           base_score=7.76
+        #                                           )
 
         model = model.fit(X_train, y_train)
         #clf = model.best_estimator_
@@ -83,7 +87,7 @@ def simulate_game(team, predict_data):
     return int(round(df[team].mean(), 0))
 
 
-teams_1, teams_2, is_neutral = get_scores_for_date(20211218)
+teams_1, teams_2, is_neutral = get_scores_for_date(20211219)
 
 
 results = []
@@ -91,12 +95,10 @@ score_results = []
 for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
     team1 = list(team1_obj.keys())[0]
     team2 = list(team2_obj.keys())[0]
-    did_away_win = False
     did_away_win_pred = False
     team1_score = list(team1_obj.values())[0]
     team2_score = list(team2_obj.values())[0]
-    if team1_score > team2_score:
-        did_away_win = True
+    did_away_win = (team1_score == max([team1_score, team2_score]))
     try:
         if loc == 1:
             predict_X_1 = get_game(team1, team2, location=1)
@@ -108,8 +110,7 @@ for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
         team2_pred = simulate_game(team2, predict_X_2)
         team1_dif = team1_score - team1_pred
         team2_dif = team2_score - team2_pred
-        if team1_pred > team2_pred:
-            did_away_win = True
+        did_away_win_pred = (team1_pred == max([team1_pred, team2_pred]))
         print(team1 + ": " + str(team1_dif))
         print(team2 + ": " + str(team2_dif))
         result = (did_away_win == did_away_win_pred)
