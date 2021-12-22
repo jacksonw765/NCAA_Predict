@@ -1,7 +1,8 @@
 import pandas as pd
 from sportsipy.ncaab.schedule import Schedule
 
-df_teams = pd.read_csv('teams2022.csv')
+year = 2020
+df_teams = pd.read_csv('teams{}.csv'.format(year))
 df_teams_columns = df_teams.columns.tolist()
 df_teams_columns_new = []
 for x in df_teams_columns:
@@ -14,7 +15,7 @@ for team in all_teams:
     main_team = df_teams[df_teams['abbreviation'] == team]
     fixed = str(team.strip()).replace(' ', '-').replace('&', '').replace('.', '').replace("'", "").lower()
     try:
-        sch = Schedule(fixed, year='2022')
+        sch = Schedule(fixed, year=str(year))
         df_sch = sch.dataframe.dropna(subset=['boxscore_index'])
         df_sch = df_sch[~df_sch.opponent_abbr.str.contains("Non-DI School")]
         df_sch = df_sch[~df_sch.opponent_conference.str.contains("Non-DI School")]
@@ -45,4 +46,4 @@ for team in all_teams:
         print("error: " + fixed)
 
 master_df = pd.concat(master_df)
-master_df.to_csv('team_list_scores2022_w.csv')
+master_df.to_csv('team_list_scores{}.csv'.format(year))

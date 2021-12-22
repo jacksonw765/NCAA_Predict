@@ -18,7 +18,7 @@ columns_divide_by_zero = ['assist_percentage', 'block_percentage', 'steal_percen
                           'turnover_percentage', 'total_rebound_percentage', 'opp_assist_percentage', 'opp_block_percentage',
                           'opp_total_rebound_percentage', 'opp_turnover_percentage', 'opp_offensive_rebound_percentage',
                           'opp_steal_percentage']
-year = 2022
+year = 2020
 for team in Teams(year):
     print(team)
     try:

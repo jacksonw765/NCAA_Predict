@@ -33,19 +33,22 @@ def get_game(home_team, away_team, location=2):
     else:
         location_home = 1
     append_team = append_team.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0', 'Unnamed: 0_2'])
-    #append_team = append_team.drop(columns=columns_drop, errors='ignore')
+    append_team = append_team.drop(columns=columns_drop, errors='ignore')
     location_data = [location_home, location_away, location_neutral]
     location_df = pd.DataFrame([location_data], columns=['location_home', 'location_away', 'location_neutral'])
     append_team = append_team.reset_index(drop=True).merge(location_df.reset_index(drop=True), left_index=True,
                                                            right_index=True)
     return append_team
 
-
-master_df = pd.read_csv('team_list_scores2022.csv')
+team_list2021 = pd.read_csv('team_list_scores2021.csv')
+team_list2022 = pd.read_csv('team_list_scores2022.csv')
+master_df = pd.concat([team_list2022, team_list2021])
+#master_df = pd.read_csv('team_list_scores2022.csv')
 y = master_df['points_for'].to_numpy()
-master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2', 'points_for', 'points_against'])
-#master_df = master_df.drop(columns=columns_drop)
-X = np.round(master_df.to_numpy(), 5)
+master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2',
+                                    'points_for', 'points_against'], errors='ignore')
+master_df = master_df.drop(columns=columns_drop, errors='ignore')
+X = master_df.to_numpy()
 
 # scaler = MinMaxScaler()
 # # fit scaler on data
@@ -61,21 +64,21 @@ def simulate_game(team, predict_data):
     preds = []
     for x in range(0, num_sim):
         X_train, X_test, y_train, y_test = train_test_split(X, y)
-        model = RandomForestRegressor(n_estimators=300)
-        #model = LinearRegression(fit_intercept=False, positive=True)
-        # model = XGBRegressor(n_estimators=500, learning_rate=0.02,
-        #                       #gamma=2,
-        #                       max_depth=None,
-        #                       #min_child_weight=1,
-        #                       #colsample_bytree=0.5,
-        #                       #subsample=0.8,
-        #                       #reg_alpha=1,
-        #                       objective='reg:squarederror',
-        #                       #base_score=.05
-        #                       )
-        # 0.78
-        # 9.03
-        # 6.61411866060518
+        #model = RandomForestRegressor(n_estimators=300)
+        #model = LinearRegression()
+        model = XGBRegressor(n_estimators=1000, learning_rate=0.01,
+                              #gamma=2,
+                              max_depth=None,
+                              #min_child_weight=1,
+                              #colsample_bytree=0.5,
+                              #subsample=0.8,
+                              #reg_alpha=1,
+                              #objective='reg:squarederror',
+                              #base_score=.05
+                              )
+        # 0.80
+        # 8.166
+        # 5.4
         #
         #
         model = model.fit(X_train, y_train)
@@ -90,8 +93,19 @@ def simulate_game(team, predict_data):
     #print("std: " + str(round(df[team].std(), 2)))
     return int(round(df[team].mean(), 0))
 
+# team1 = "CINCINNATI"
+# team2 = "HOUSTON"
+#
+# predict_X_1 = get_game(team1, team2, location=0)
+# predict_X_2 = get_game(team2, team1, location=2)
+#
+# output = team1 + ": " + str(simulate_game(team1, predict_X_1))
+# output2 = team2 + ": " + str(simulate_game(team2, predict_X_2))
+# print(output)
+# print(output2)
 
-teams_1, teams_2, is_neutral = get_scores_for_date(20211220)
+
+teams_1, teams_2, is_neutral = get_scores_for_date(20211221)
 
 
 results = []
@@ -131,10 +145,7 @@ for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
 print(float(results.count(True)/len(results)))
 print(str(statistics.mean(score_results)))
 print(str(statistics.stdev(score_results)))
-fig = plt.figure(figsize=(10, 7))
-
-# Creating plot
-plt.boxplot(score_results)
-
-# show plot
-plt.show()
+print("Predicted " + str(len(score_results)))
+# fig = plt.figure(figsize=(10, 7))
+# plt.boxplot(score_results)
+# plt.show()

@@ -4,13 +4,13 @@ from sportsipy.ncaab.schedule import Schedule
 from sportsipy.ncaab.teams import Teams
 
 master_df = []
-year = 2022
+year = 2018
 for team in Teams(year):
-    team_df = team.dataframe
-    team_abbr = team_df['abbreviation'].values.tolist()[0]
-    fixed = str(team_abbr.strip()).replace(' ', '-').replace('&', '').replace('.', '').replace("'", "").lower()
-    print(fixed)
     try:
+        team_df = team.dataframe
+        team_abbr = team_df['abbreviation'].values.tolist()[0]
+        fixed = str(team_abbr.strip()).replace(' ', '-').replace('&', '').replace('.', '').replace("'", "").lower()
+        print(fixed)
         sch = Schedule(fixed, year=str(year))
         df_sch = sch.dataframe.dropna(subset=['boxscore_index'])
         df_sch = df_sch[~df_sch.opponent_abbr.str.contains("Non-DI School")]
