@@ -1,26 +1,28 @@
 import statistics
 import sys
 
+import numpy as np
 import pandas as pd
 from keras.saving.model_config import model_from_json
+from sklearn.preprocessing import MinMaxScaler
 
 from get_game_schedule import get_scores_for_date
 
 columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_wins', 'games_played', 'home_losses',
                 'home_wins', 'losses', 'wins',  'away_losses_2', 'away_wins_2', 'conference_losses_2', 'conference_wins_2',
                 'games_played_2', 'home_losses_2', 'home_wins_2', 'losses_2', 'wins_2',
-                'team1_losses', 'team2_losses',]
+                'team1_losses', 'team2_losses', 'weight']
 
-boxscores2020 = pd.read_csv('teams_list_boxscores2020.csv').dropna()
-boxscores2021 = pd.read_csv('teams_list_boxscores2021.csv').dropna()
-boxscores2022 = pd.read_csv('teams_list_boxscores2022.csv').dropna()
-master_df = pd.concat([boxscores2021, boxscores2022, boxscores2020])
+# boxscores2018 = pd.read_csv('teams_list_boxscores2018.csv').dropna()
+# boxscores2020 = pd.read_csv('teams_list_boxscores2020.csv').dropna()
+# boxscores2021 = pd.read_csv('teams_list_boxscores2021.csv').dropna()
+master_df = pd.read_csv('teams_list_boxscores2022.csv').dropna()
+# master_df = pd.concat([boxscores2021, boxscores2022, boxscores2020, boxscores2018])
 y = master_df['points_for'].to_numpy()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',
                                     'Unnamed: 0_2', 'team1', 'team2', 'points_for', 'points_against'], errors='ignore')
 master_df = master_df.drop(columns=columns_drop, errors='ignore')
-#X = np.round(master_df.to_numpy(), 2).tolist()
-# X = np.round(master_df.to_numpy(), 2)
+X = np.round(master_df.to_numpy(), 6)
 # scaler = MinMaxScaler()
 # # fit scaler on data
 # scaler.fit(X)
@@ -73,7 +75,7 @@ def simulate_game(team, predict_data):
 # print(output)
 # print(output2)
 
-teams_1, teams_2, is_neutral = get_scores_for_date(20211218)
+teams_1, teams_2, is_neutral = get_scores_for_date(20211222)
 
 
 results = []

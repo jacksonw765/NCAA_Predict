@@ -28,7 +28,7 @@ def get_game(home_team, away_team, location=2):
         location_away = 1
     else:
         location_home = 1
-    append_team = append_team.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0', 'Unnamed: 0_2'])
+    append_team = append_team.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0', 'Unnamed: 0_2'], errors='ignore')
     append_team = append_team.drop(columns=columns_drop, errors='ignore')
     location_data = [location_home, location_away, location_neutral]
     location_df = pd.DataFrame([location_data], columns=['location_home', 'location_away', 'location_neutral'])
@@ -36,10 +36,7 @@ def get_game(home_team, away_team, location=2):
                                                            right_index=True)
     return append_team
 
-team_list2021 = pd.read_csv('team_list_scores2021.csv')
-team_list2022 = pd.read_csv('team_list_scores2022.csv')
-master_df = pd.concat([team_list2022, team_list2021])
-#master_df = pd.read_csv('team_list_scores2022.csv')
+master_df = pd.read_csv('team_list_scores2022.csv')
 y = master_df['points_for'].to_numpy()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1','Unnamed: 0',  'Unnamed: 0_2',
                                     'points_for', 'points_against'], errors='ignore')
@@ -64,10 +61,10 @@ num_sim = 1
 # predict_X_1 = get_game(team1, team2, location=0)
 # predict_X_2 = get_game(team2, team1, location=2)
 #
-def simulate_game(team, predict_data):
+def simulate_game(team, predict_data, offset):
     preds = []
     #predict_X = scaler.transform(predict_data.to_numpy())
-    predictions = model.predict([predict_data.to_numpy()])
+    predictions = model.predict([predict_data.to_numpy()]) + offset
     preds.append(predictions)
     df = pd.DataFrame([preds], columns=[team])
     return int(df[team].mean())
@@ -77,9 +74,18 @@ def simulate_game(team, predict_data):
 # print(output)
 # print(output2)
 
-teams_1, teams_2, is_neutral = get_scores_for_date(20211220)
 
+teams_1, teams_2, is_neutral = get_scores_for_date(20220113)
+teams_1_2, teams_2_2, is_neutral_2 = get_scores_for_date(20220114)
+
+teams_1 = teams_1 + teams_1_2
+teams_2 = teams_2 + teams_2_2
+is_neutral = is_neutral + is_neutral_2
+#
+#
 results = []
+score_results_home = []
+score_results_away = []
 score_results = []
 for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
     team1 = list(team1_obj.keys())[0]
@@ -95,16 +101,18 @@ for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
         else:
             predict_X_1 = get_game(team1, team2, location=0)
             predict_X_2 = get_game(team2, team1, location=2)
-        team1_pred = simulate_game(team1, predict_X_1)
-        team2_pred = simulate_game(team2, predict_X_2)
+        team1_pred = simulate_game(team1, predict_X_1, 0)
+        team2_pred = simulate_game(team2, predict_X_2, 0)
         team1_dif = team1_score - team1_pred
         team2_dif = team2_score - team2_pred
         did_away_win_pred = (team1_pred == max([team1_pred, team2_pred]))
-        print(team1 + ": " + str(team1_dif))
-        print(team2 + ": " + str(team2_dif))
+        print(team1 + ": " + str(team1_pred) + ", " + str(team1_score))
+        print(team2 + ": " + str(team2_pred) + ", " + str(team2_score))
         result = (did_away_win == did_away_win_pred)
         print(result)
         results.append(result)
+        score_results_home.append(team1_dif)
+        score_results_away.append(team2_dif)
         score_results.append(abs(team1_dif))
         score_results.append(abs(team2_dif))
         print('\n')
@@ -113,7 +121,8 @@ for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
         pass
     except Exception as e:
         print("Failed " + team1, team2)
-print(float(results.count(True)/len(results)))
+print("% Correct: " + str(float(results.count(True)/len(results))))
+print("Home: " + str(statistics.mean(score_results_home)))
+print("Away: " + str(statistics.mean(score_results_away)))
 print(str(statistics.mean(score_results)))
-print(str(statistics.stdev(score_results)))
-print("Predicted " + str(len(score_results)))
+print("Predicted " + str(len(score_results_home)))

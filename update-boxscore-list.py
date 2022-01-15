@@ -2,9 +2,36 @@ import pandas as pd
 from sportsipy.ncaab.boxscore import Boxscore
 from sportsipy.ncaab.schedule import Schedule
 from sportsipy.ncaab.teams import Teams
-
+columns_divide_by_zero = ["away_assist_percentage",
+"away_block_percentage",
+"away_defensive_rebound_percentage",
+"away_effective_field_goal_percentage",
+"away_field_goal_percentage",
+"away_free_throw_percentage",
+"away_offensive_rebound_percentage",
+"away_steal_percentage",
+"away_three_point_field_goal_percentage",
+"away_total_rebound_percentage",
+"away_true_shooting_percentage",
+"away_turnover_percentage",
+"away_two_point_field_goal_percentage",
+"away_win_percentage",
+"home_assist_percentage",
+"home_block_percentage",
+"home_defensive_rebound_percentage",
+"home_effective_field_goal_percentage",
+"home_field_goal_percentage",
+"home_free_throw_percentage",
+"home_offensive_rebound_percentage",
+"home_steal_percentage",
+"home_three_point_field_goal_percentage",
+"home_total_rebound_percentage",
+"home_true_shooting_percentage",
+"home_turnover_percentage",
+"home_two_point_field_goal_percentage",
+"home_win_percentage"]
 master_df = []
-year = 2018
+year = 2022
 for team in Teams(year):
     try:
         team_df = team.dataframe
@@ -20,6 +47,9 @@ for team in Teams(year):
         for i, boxscore in enumerate(boxscores):
             opp_team = team_opps[i].upper()
             score_df = Boxscore(boxscore).dataframe
+            for x in columns_divide_by_zero:
+                if score_df[x].tolist()[0] > 1:
+                    score_df[x] = score_df[x] / 100
             location = df_sch['location'].values.tolist()[i]
             # prob a horrible way to do this but idc its late
             team_1_df, team_2_df = None, None

@@ -1,7 +1,7 @@
 import pandas as pd
 from sportsipy.ncaab.schedule import Schedule
 
-year = 2020
+year = 2019
 df_teams = pd.read_csv('teams{}.csv'.format(year))
 df_teams_columns = df_teams.columns.tolist()
 df_teams_columns_new = []
