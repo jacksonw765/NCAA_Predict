@@ -36,11 +36,17 @@ four_convert_to_int = ['AdjTempo', 'AdjOE', 'Off-eFG%', 'Off-TO%', 'Off-OR%', 'O
 height_convert_to_int = ['AvgHgt', 'EffHgt', 'C-Hgt', 'PF-Hgt', 'SF-Hgt', 'SG-Hgt', 'PG-Hgt',
                          'Experience', 'Bench', 'Continuity']
 
+point_convert_to_int = ['Off-FT', 'Off-2P', 'Off-3P', 'Def-FT', 'Def-2P', 'Def-3P',]
+
+eff_convert_to_int = ['Tempo-Adj', 'Avg. Poss Length-Offense', 'Avg. Poss Length-Defense',
+       'Off. Efficiency-Adj', 'Def. Efficiency-Adj',]
+
 def clean_ken(df):
     df['abbreviation'] = df['Team'].str.upper()
     df['abbreviation'] = df['abbreviation'].str.replace(' ', '-')
     df = df[df.columns.drop(list(df.filter(regex='Rank')))] \
         .drop(columns=['Conference', 'Team'])
+    df = df[df.columns.drop(list(df.filter(regex='-Raw')))]
     df['abbreviation'] = df['abbreviation'].map(get_team_from_abbr)
     df['abbreviation'] = df['abbreviation'].str.replace('-ST.', '-STATE')
     df['abbreviation'] = df['abbreviation'].str.replace('STATETE', 'STATE')
@@ -54,14 +60,24 @@ def clean_ken(df):
 
 kenpom_height_df = kp.get_height(browser, season=year)
 kenpom_four_df = kp.get_fourfactors(browser, season=year)
+kenpom_point_df = kp.get_pointdist(browser, season=year)
+kenpom_eff_df = kp.get_efficiency(browser, season=year)
 kenpom_height_df = clean_ken(kenpom_height_df)
 kenpom_four_df = clean_ken(kenpom_four_df)
+kenpom_point_df = clean_ken(kenpom_point_df)
+kenpom_eff_df = clean_ken(kenpom_eff_df)
 
 for x in four_convert_to_int:
     kenpom_four_df[x] = pd.to_numeric(kenpom_four_df[x])
 
 for x in height_convert_to_int:
     kenpom_height_df[x] = pd.to_numeric(kenpom_height_df[x])
+
+for x in point_convert_to_int:
+    kenpom_point_df[x] = pd.to_numeric(kenpom_point_df[x])
+
+for x in eff_convert_to_int:
+    kenpom_eff_df[x] = pd.to_numeric(kenpom_eff_df[x])
 
 for team in Teams(year):
     try:
@@ -72,6 +88,8 @@ for team in Teams(year):
                               'conference_wins', 'conference_losses', 'games_played', 'minutes_played'])
         df = df.merge(kenpom_four_df, on='abbreviation', how='inner')
         df = df.merge(kenpom_height_df, on='abbreviation', how='inner')
+        df = df.merge(kenpom_eff_df, on='abbreviation', how='inner')
+        df = df.merge(kenpom_point_df, on='abbreviation', how='inner')
         if not df.empty:
             for x in columns_divide_by_hundo:
                 df[x] = df[x] / 100

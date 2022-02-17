@@ -5,9 +5,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 import numpy as np
-from xgboost import plot_importance, XGBRegressor
-import matplotlib.pyplot as plt
-from get_game_schedule import get_scores_for_date, get_schedules_for_date
+from xgboost import XGBRegressor
+from get_game_schedule import get_scores_for_date, get_schedules_for_date, get_favored_team_for_date
 
 columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_wins', 'games_played', 'home_losses',
                 'home_wins', 'losses', 'wins',  'away_losses_2', 'away_wins_2', 'conference_losses_2', 'conference_wins_2',
@@ -61,25 +60,20 @@ num_sim = 1
 # EASTERN-KENTUCKY: 64
 # SOUTHERN-CALIFORNIA: 86
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=43)
-# model3 = XGBRegressor(n_estimators=2500, learning_rate=0.02,
-#                       # gamma=2,
-#                       # max_depth=None,
-#                       # min_child_weight=1,
-#                       # colsample_bytree=0.5,
-#                       # subsample=0.8,
-#                       # reg_alpha=1,
-#                       #objective='reg:squarederror',
-#                       base_score=14.5)
-model3 = LinearRegression(fit_intercept=False, positive=True)
-#model3 = RandomForestRegressor(n_estimators=700)
-# model.fit(X_train, y_train)
-# model2.fit(X_train, y_train)
+model3 = XGBRegressor(n_estimators=1000, learning_rate=0.01,
+                      gamma=2,
+                      max_depth=None,
+                      min_child_weight=1,
+                      colsample_bytree=0.5,
+                      subsample=0.8,
+                      reg_alpha=1,
+                      # objective='reg:squarederror',
+                      base_score=0)
+model2 = LinearRegression(fit_intercept=False, positive=True)
+model = RandomForestRegressor(n_estimators=700)
+model.fit(X_train, y_train)
+model2.fit(X_train, y_train)
 model3.fit(X_train, y_train)
-#plot_importance(model3, max_num_features=10) # top 10 most important features
-#plt.barh(master_df.columns, model3.feature_importances_)
-#sort = {key: value for key, value in zip(master_df.columns.to_list(), model3.feature_importances_.tolist())}
-#plt.show()
-#df_imp = pd.DataFrame([[master_df.columns, model3.feature_importances_]], columns=['columns', 'rank'])
 def simulate_game(team, predict_data, offset):
     preds = []
     for x in range(0, num_sim):
@@ -95,8 +89,8 @@ def simulate_game(team, predict_data, offset):
     df = pd.DataFrame(preds, columns=[team])
     return int(round(df[team].mean(), 0))
 
-# team1 = "CINCINNATI"
-# team2 = "WICHITA-STATE"
+# team1 = "PURDUE"
+# team2 = "ILLINOIS"
 #
 # predict_X_1 = get_game(team1, team2, location=0)
 # predict_X_2 = get_game(team2, team1, location=2)
@@ -106,9 +100,10 @@ def simulate_game(team, predict_data, offset):
 # print(output)
 # print(output2)
 
-teams_1, teams_2 = get_schedules_for_date(20220115)
+teams_1, teams_2 = get_schedules_for_date(20220129)
 
-# teams_1, teams_2, is_neutral = get_scores_for_date(20220113)
+#teams_1, teams_2, is_neutral = get_scores_for_date(20220129)
+winners, losers = get_favored_team_for_date('2022-01-29')
 # teams_1_2, teams_2_2, is_neutral_2 = get_scores_for_date(20220114)
 #
 # teams_1 = teams_1 + teams_1_2
@@ -116,10 +111,8 @@ teams_1, teams_2 = get_schedules_for_date(20220115)
 # is_neutral = is_neutral + is_neutral_2
 #
 #
-# results = []
-# score_results_home = []
-# score_results_away = []
-# score_results = []
+# score_results_home, score_results_away, score_results, results, score_results_home_ken, score_results_away_ken, = \
+#     [], [], [], [], [], []
 # for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
 #     team1 = list(team1_obj.keys())[0]
 #     team2 = list(team2_obj.keys())[0]
@@ -127,6 +120,17 @@ teams_1, teams_2 = get_schedules_for_date(20220115)
 #     team1_score = list(team1_obj.values())[0]
 #     team2_score = list(team2_obj.values())[0]
 #     did_away_win = (team1_score == max([team1_score, team2_score]))
+#
+#     # pred_win_score = winners.get(team1, None)
+#     # pred_win_team = team1
+#     # pred_loss_score = losers.get(team2, None)
+#     # pred_loss_team = team2
+#     # if not pred_win_score:
+#     #     pred_win_score = winners.get(team2)
+#     #     pred_win_team = team2
+#     #     pred_loss_score = losers.get(team1, None)
+#     #     pred_loss_team = team1
+#
 #     try:
 #         if loc == 1:
 #             predict_X_1 = get_game(team1, team2, location=1)
@@ -162,17 +166,35 @@ teams_1, teams_2 = get_schedules_for_date(20220115)
 
 
 for team1, team2 in zip(teams_1, teams_2):
+    pred_win_score = winners.get(team1, None)
+    pred_win_team = team1
+    pred_loss_score = losers.get(team2, None)
+    pred_loss_team = team2
+    if not pred_win_score:
+        pred_win_score = winners.get(team2)
+        pred_win_team = team2
+        pred_loss_score = losers.get(team1, None)
+        pred_loss_team = team1
     try:
         predict_X_1 = get_game(team1, team2, location=0)
         predict_X_2 = get_game(team2, team1, location=2)
         team1_pred = simulate_game(team1, predict_X_1, 0)
         team2_pred = simulate_game(team2, predict_X_2, 0)
-        print(team1 + ' : ' + str(team1_pred))
-        print(team2 + ' : ' + str(team2_pred))
+        print('Pred')
+        if pred_win_team == team1:
+            print(pred_win_team + ': ' + str(pred_win_score))
+            print(pred_loss_team + ': ' + str(pred_loss_score))
+        else:
+            print(pred_loss_team + ': ' + str(pred_loss_score))
+            print(pred_win_team + ': ' + str(pred_win_score))
+        print('Us')
+        print(team1 + ': ' + str(team1_pred))
+        print(team2 + ': ' + str(team2_pred))
         print('\n')
+
     except ValueError as e:
         # this means the team could not be found, just skip it.
-        print("Failed " + team1, team2)
+        #print("Failed " + team1, team2)
         pass
     except Exception as e:
         print("Failed " + team1, team2)
