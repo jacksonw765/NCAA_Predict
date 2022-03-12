@@ -23,9 +23,9 @@ master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 
                                     'Unnamed: 0_2', 'team1', 'team2', 'points_for', 'points_against'], errors='ignore')
 master_df = master_df.drop(columns=columns_drop, errors='ignore')
 X = np.round(master_df.to_numpy(), 6)
-# scaler = MinMaxScaler()
-# # fit scaler on data
-# scaler.fit(X)
+scaler = MinMaxScaler()
+# fit scaler on data
+scaler.fit(X)
 
 file = open('dense.json', 'r')
 model_json = file.read()
@@ -65,7 +65,7 @@ def simulate_game(team, predict_data):
     preds = []
     #predict_X = scaler.transform(predict_data.to_numpy())
     model.load_weights('dense.h5')
-    predictions = model.predict([predict_data.to_numpy()])
+    predictions = model.predict([scaler.transform(predict_data.to_numpy())])
     preds.append(predictions)
     df = pd.DataFrame([preds], columns=[team])
     return int(df[team].mean())
@@ -75,7 +75,7 @@ def simulate_game(team, predict_data):
 # print(output)
 # print(output2)
 
-teams_1, teams_2, is_neutral = get_scores_for_date(20211222)
+teams_1, teams_2, is_neutral = get_scores_for_date(20220312)
 
 
 results = []

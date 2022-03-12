@@ -6,7 +6,7 @@ import pandas as pd
 from sportsipy.ncaab.teams import Teams
 
 year = 2022
-browser = login('jacksonw765@gmail.com', '9797Jdw!')
+browser = login('jacksonw765@gmail.com', 'TtEbbYxiA5')
 
 team_df = []
 columns_divide_by_minutes = ["assists", "blocks", "defensive_rebounds", "field_goal_attempts", "field_goals",
@@ -59,8 +59,7 @@ def clean_ken(df):
     return df
 
 kenpom_height_df = kp.get_height(browser, season=year)
-kenpo
-m_four_df = kp.get_fourfactors(browser, season=year)
+kenpom_four_df = kp.get_fourfactors(browser, season=year)
 kenpom_point_df = kp.get_pointdist(browser, season=year)
 kenpom_eff_df = kp.get_efficiency(browser, season=year)
 kenpom_height_df = clean_ken(kenpom_height_df)

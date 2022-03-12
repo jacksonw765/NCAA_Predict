@@ -3,6 +3,7 @@ import sys
 
 import pandas as pd
 from keras.saving.model_config import model_from_json
+from sklearn.preprocessing import MinMaxScaler
 
 from get_game_schedule import get_scores_for_date
 
@@ -42,9 +43,11 @@ master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 
                                     'points_for', 'points_against'], errors='ignore')
 master_df = master_df.drop(columns=columns_drop, errors='ignore')
 X = master_df.to_numpy()
-# scaler = MinMaxScaler()
-# # fit scaler on data
-# scaler.fit(X)
+scaler = MinMaxScaler()
+# fit scaler on data
+scaler.fit(X)
+
+X = scaler.transform(X)
 
 file = open('dense.json', 'r')
 model_json = file.read()
@@ -61,10 +64,10 @@ num_sim = 1
 # predict_X_1 = get_game(team1, team2, location=0)
 # predict_X_2 = get_game(team2, team1, location=2)
 #
-def simulate_game(team, predict_data, offset):
+def simulate_game(team, predict_data):
     preds = []
     #predict_X = scaler.transform(predict_data.to_numpy())
-    predictions = model.predict([predict_data.to_numpy()]) + offset
+    predictions = model.predict(scaler.transform(predict_data.to_numpy()))
     preds.append(predictions)
     df = pd.DataFrame([preds], columns=[team])
     return int(df[team].mean())
@@ -75,19 +78,15 @@ def simulate_game(team, predict_data, offset):
 # print(output2)
 
 
-teams_1, teams_2, is_neutral = get_scores_for_date(20220113)
-teams_1_2, teams_2_2, is_neutral_2 = get_scores_for_date(20220114)
+teams_1, teams_2 = get_scores_for_date(20220312)
 
-teams_1 = teams_1 + teams_1_2
-teams_2 = teams_2 + teams_2_2
-is_neutral = is_neutral + is_neutral_2
 #
 #
 results = []
 score_results_home = []
 score_results_away = []
 score_results = []
-for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
+for team1_obj, team2_obj in zip(teams_1, teams_2):
     team1 = list(team1_obj.keys())[0]
     team2 = list(team2_obj.keys())[0]
     did_away_win_pred = False
@@ -95,14 +94,10 @@ for team1_obj, team2_obj, loc in zip(teams_1, teams_2, is_neutral):
     team2_score = list(team2_obj.values())[0]
     did_away_win = (team1_score == max([team1_score, team2_score]))
     try:
-        if loc == 1:
-            predict_X_1 = get_game(team1, team2, location=1)
-            predict_X_2 = get_game(team2, team1, location=1)
-        else:
-            predict_X_1 = get_game(team1, team2, location=0)
-            predict_X_2 = get_game(team2, team1, location=2)
-        team1_pred = simulate_game(team1, predict_X_1, 0)
-        team2_pred = simulate_game(team2, predict_X_2, 0)
+        predict_X_1 = get_game(team1, team2, location=1)
+        predict_X_2 = get_game(team2, team1, location=1)
+        team1_pred = simulate_game(team1, predict_X_1)
+        team2_pred = simulate_game(team2, predict_X_2)
         team1_dif = team1_score - team1_pred
         team2_dif = team2_score - team2_pred
         did_away_win_pred = (team1_pred == max([team1_pred, team2_pred]))

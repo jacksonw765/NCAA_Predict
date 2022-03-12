@@ -54,7 +54,7 @@ def get_schedules_for_date(date):
 
 
 def get_favored_team_for_date(date):
-    browser = login('jacksonw765@gmail.com', '9797Jdw!')
+    browser = login('jacksonw765@gmail.com', 'TtEbbYxiA5')
     # fact = kp.get_fourfactors(browser)
     fm_df = fm.FanMatch(browser, date=date).fm_df[['Game', 'PredictedWinner', "PredictedLoser",
                                                             'PredictedScore', "WinProbability"]].dropna()
@@ -82,12 +82,16 @@ def get_scores_for_date(date):
     team1 = []
     team2 = []
     for x in li_rows:
-        teams = x.find_all('a', {'class', 'AnchorLink truncate'})
-        scores = x.find_all('div', {'class': 'ScoreCell__Score'})
-        away = {get_team_from_abbr(_clean_str(teams[0].text)): int(scores[0].text)}
-        home = {get_team_from_abbr(_clean_str(teams[1].text)): int(scores[1].text)}
-        team1.append(away)
-        team2.append(home)
+        try:
+            teams = x.find_all('a', {'class', 'AnchorLink truncate'})
+            scores = x.find_all('div', {'class': 'ScoreCell__Score'})
+            if int(scores[0].text) > 40 and int(scores[1].text) > 40:
+                away = {get_team_from_abbr(_clean_str(teams[0].text)): int(scores[0].text)}
+                home = {get_team_from_abbr(_clean_str(teams[1].text)): int(scores[1].text)}
+                team1.append(away)
+                team2.append(home)
+        except Exception as e:
+            print('failed to get team')
     assert len(team1) == len(team2)
     return team1, team2
 
