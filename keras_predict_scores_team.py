@@ -55,17 +55,24 @@ scaler.fit(X)
 X = scaler.transform(X)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=43)
-model = RandomForestRegressor(n_estimators=1500, n_jobs=-1)
+model = RandomForestRegressor(n_estimators=600, n_jobs=-1, max_samples=44, min_samples_leaf=6,)
 model2 = LinearRegression(fit_intercept=False, positive=True)
-model3 = XGBRegressor(n_estimators=400, learning_rate=0.01,
+model3 = XGBRegressor(n_estimators=600,
                       #gamma=3,
-                      #max_depth=None,
-                      min_child_weight=1,
-                      colsample_bytree=.8,
-                      subsample=.5,
-                      reg_alpha=0,
-                      objective='reg:squarederror',
-                      base_score=0)
+                      #min_samples_leaf=5,
+                      #max_samples=44,
+                      learning_rate=.01,
+                      #max_depth=10,
+                      booster='gblinear',
+                      n_jobs=8,
+                      #colsample_bylevel=0.5,
+                      #min_child_weight=1,
+                      #colsample_bytree=.8,
+                      #subsample=.5,
+                      #reg_alpha=0,
+                      #base_score=17
+                      #objective='reg:logistic',
+                      )
 model.fit(X_train, y_train)
 model2.fit(X_train, y_train)
 model3.fit(X_train, y_train)
@@ -85,79 +92,73 @@ def simulate_game(team, predict_data):
     return round(df[team].mean(), 1)
 
 
-# team1s = ['TENNESSEE', 'MEMPHIS', 'ARIZONA', 'KENTUCKY', 'ARIZONA', 'AUBURN', 'GONZAGA', 'BOISE-STATE', 'DUKE', 'PROVIDENCE']
-# team2s = ['KENTUCKY', 'SOUTHERN-METHODIST', 'BAYLOR', 'DUKE', 'BAYLOR', 'UCLA', 'ALCORN-STATE', 'NOTRE-DAME', 'DELAWARE', 'VERMONT']
-#
-# for team1, team2 in zip(team1s, team2s):
-#     predict_X_1 = get_game(team1, team2, location=1)
-#     predict_X_2 = get_game(team2, team1, location=1)
-#
-#     output = team1 + ": " + str(simulate_game(team1, predict_X_1, ))
-#     output2 = team2 + ": " + str(simulate_game(team2, predict_X_2,))
-#     print(output)
-#     print(output2)
-#     print('\n')
+team1s = ['WISCONSIN']
+team2s = ['COLGATE']
 
-#teams_1, teams_2 = get_schedules_for_date(20220311)
+for team1, team2 in zip(team1s, team2s):
+    predict_X_1 = get_game(team1, team2, location=1)
+    predict_X_2 = get_game(team2, team1, location=1)
 
-teams_1, teams_2 = get_scores_for_date(20220312)
-winners, losers = get_favored_team_for_date('2022-03-12')
+    output = team1 + ": " + str(simulate_game(team1, predict_X_1, ))
+    output2 = team2 + ": " + str(simulate_game(team2, predict_X_2,))
+    print(output)
+    print(output2)
+    print('\n')
+
+#teams_1, teams_2 = get_schedules_for_date(20220318)
+
+#teams_1, teams_2 = get_scores_for_date(20220312)
+#winners, losers = get_favored_team_for_date('2022-03-18')
 #winners, losers = get_scores_for_date(20220311)
-# teams_1_2, teams_2_2, is_neutral_2 = get_scores_for_date(20220114)
 #
-# teams_1 = teams_1 + teams_1_2
-# teams_2 = teams_2 + teams_2_2
-# is_neutral = is_neutral + is_neutral_2
+# score_results_home, score_results_away, score_results, results, score_results_home_ken, score_results_away_ken, = \
+#     [], [], [], [], [], []
+# kenpom_pred = {**winners, **losers}
+# for team1_obj, team2_obj in zip(teams_1, teams_2):
+#     team1 = list(team1_obj.keys())[0]
+#     team2 = list(team2_obj.keys())[0]
+#     did_away_win_pred = False
+#     team1_score = list(team1_obj.values())[0]
+#     team2_score = list(team2_obj.values())[0]
+#     did_away_win = (team1_score == max([team1_score, team2_score]))
 #
-#
-score_results_home, score_results_away, score_results, results, score_results_home_ken, score_results_away_ken, = \
-    [], [], [], [], [], []
-kenpom_pred = {**winners, **losers}
-for team1_obj, team2_obj in zip(teams_1, teams_2):
-    team1 = list(team1_obj.keys())[0]
-    team2 = list(team2_obj.keys())[0]
-    did_away_win_pred = False
-    team1_score = list(team1_obj.values())[0]
-    team2_score = list(team2_obj.values())[0]
-    did_away_win = (team1_score == max([team1_score, team2_score]))
-
-    ken_pred_home_score = winners.get(team1, None)
-    ken_pred_home_team = team1
-    ken_pred_away_score = losers.get(team2, None)
-    ken_pred_away_team = team2
-    if not ken_pred_home_score:
-        ken_pred_home_score = winners.get(team2)
-        ken_pred_home_team = team2
-        ken_pred_away_score = losers.get(team1, None)
-        ken_pred_away_team = team1
-    try:
-        predict_X_1 = get_game(team1, team2, location=1)
-        predict_X_2 = get_game(team2, team1, location=1)
-        team1_pred = simulate_game(team1, predict_X_1)
-        team2_pred = simulate_game(team2, predict_X_2)
-        team1_dif = abs(team1_score - team1_pred)
-        team2_dif = abs(team2_score - team2_pred)
-        did_away_win_pred = (team1_pred == max([team1_pred, team2_pred]))
-        print(team1 + ": " + str(team1_pred) + ", " + str(kenpom_pred.get(team1)) + ", " + str(team1_score))
-        print(team2 + ": " + str(team2_pred) + ", " + str(kenpom_pred.get(team2)) + ", " + str(team2_score))
-        result = (did_away_win == did_away_win_pred)
-        print(result)
-        results.append(result)
-        score_results_home.append(team1_dif)
-        score_results_away.append(team2_dif)
-        score_results.append(abs(team1_dif))
-        score_results.append(abs(team2_dif))
-        print('\n')
-    except ValueError as e:
-        # this means the team could not be found, just skip it.
-        pass
-    except Exception as e:
-        print("Failed " + team1, team2)
-print("% Correct: " + str(float(results.count(True) / len(results))))
-print("Away: " + str(statistics.mean(score_results_away)))
-print("Home: " + str(statistics.mean(score_results_home)))
-print(str(statistics.mean(score_results)))
-print("Predicted " + str(len(score_results_home)))
+#     ken_pred_home_score = winners.get(team1, None)
+#     ken_pred_home_team = team1
+#     ken_pred_away_score = losers.get(team2, None)
+#     ken_pred_away_team = team2
+#     if not ken_pred_home_score:
+#         ken_pred_home_score = winners.get(team2)
+#         ken_pred_home_team = team2
+#         ken_pred_away_score = losers.get(team1, None)
+#         ken_pred_away_team = team1
+#     try:
+#         predict_X_1 = get_game(team1, team2, location=1)
+#         predict_X_2 = get_game(team2, team1, location=1)
+#         team1_pred = simulate_game(team1, predict_X_1)
+#         team2_pred = simulate_game(team2, predict_X_2)
+#         team1_dif = abs(team1_score - team1_pred)
+#         team2_dif = abs(team2_score - team2_pred)
+#         did_away_win_pred = (team1_pred == max([team1_pred, team2_pred]))
+#         print(team1 + ": " + str(team1_pred) + ", " + str(kenpom_pred.get(team1)) + ", " + str(team1_score))
+#         print(team2 + ": " + str(team2_pred) + ", " + str(kenpom_pred.get(team2)) + ", " + str(team2_score))
+#         result = (did_away_win == did_away_win_pred)
+#         print(result)
+#         results.append(result)
+#         score_results_home.append(team1_dif)
+#         score_results_away.append(team2_dif)
+#         score_results.append(abs(team1_dif))
+#         score_results.append(abs(team2_dif))
+#         print('\n')
+#     except ValueError as e:
+#         # this means the team could not be found, just skip it.
+#         pass
+#     except Exception as e:
+#         print("Failed " + team1, team2)
+# print("% Correct: " + str(float(results.count(True) / len(results))))
+# print("Away: " + str(statistics.mean(score_results_away)))
+# print("Home: " + str(statistics.mean(score_results_home)))
+# print(str(statistics.mean(score_results)))
+# print("Predicted " + str(len(score_results_home)))
 
 # winners_2 = {}
 # losers_2 = {}

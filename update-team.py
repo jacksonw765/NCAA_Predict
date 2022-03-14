@@ -1,4 +1,3 @@
-import statistics
 from kenpompy.utils import login
 import kenpompy.summary as kp
 from abbr_table import get_team_from_abbr
@@ -56,6 +55,7 @@ def clean_ken(df):
     df['abbreviation'] = df['abbreviation'].str.replace('UC-', 'CALIFORNIA-')
     df['abbreviation'] = df['abbreviation'].str.replace('UNC-', 'NORTH-CAROLINA-')
     df['abbreviation'] = df['abbreviation'].str.replace('UT-', 'TEXAS-')
+    df['abbreviation'] = df['abbreviation'].str.replace('SAINT-MARYS', 'SAINT-MARYS-CA')
     return df
 
 kenpom_height_df = kp.get_height(browser, season=year)
