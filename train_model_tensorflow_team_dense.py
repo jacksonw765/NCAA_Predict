@@ -1,8 +1,6 @@
-import numpy as np
 import pandas as pd
 import tensorflow as tf
-import keras.backend as K
-from keras import regularizers
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 
@@ -32,63 +30,32 @@ X = scaler.transform(X)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=43)
 model = tf.keras.Sequential([
-    tf.keras.layers.Input(205),
-
-    tf.keras.layers.Dense(400,),
-    tf.keras.layers.PReLU(),
-    tf.keras.layers.BatchNormalization(),
-    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(205, activation='relu', input_dim=205),
+    #tf.keras.layers.PReLU(),
+    #tf.keras.layers.BatchNormalization(),
+    #tf.keras.layers.Dropout(0.3),
 
     #tf.keras.layers.Dense(69, input_dim=69,),
     #tf.keras.layers.PReLU(),
     #tf.keras.layers.BatchNormalization(),
     #tf.keras.layers.Dropout(0.1),
 
-    tf.keras.layers.Dense(250,),
-    tf.keras.layers.Dropout(0.1),
+    #tf.keras.layers.Dense(205, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
     # tf.keras.layers.Dense(1000,),
     # tf.keras.layers.Dropout(0.1),
-    tf.keras.layers.Dense(85, ),
-    # tf.keras.layers.Dense(1024,),
+    tf.keras.layers.Dense(640, activation='relu'),
+    tf.keras.layers.Dense(16, activation='relu'),
     # tf.keras.layers.Dense(4096, ),
     #
-    #tf.keras.layers.Dense(512, kernel_regularizer=regularizers.l2(0.00001)),
-    #tf.keras.layers.PReLU(),
-    #tf.keras.layers.BatchNormalization(),
-    #tf.keras.layers.Dropout(0.1),
-
-    # tf.keras.layers.Dense(1024),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.1),
-    #
-    #tf.keras.layers.Dense(64,),
-    #tf.keras.layers.PReLU(),
-    #tf.keras.layers.BatchNormalization(),
-    #tf.keras.layers.Dropout(0.1),
-
-    # tf.keras.layers.Dense(10240,),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.1),
-    #
-    # tf.keras.layers.Dense(7000, activation='tanh'),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-    # tf.keras.layers.Dropout(0.1),
-
-    # tf.keras.layers.Dense(572),
-    # tf.keras.layers.PReLU(),
-    # tf.keras.layers.BatchNormalization(),
-
-    tf.keras.layers.Dense(1, kernel_initializer='normal'),
+    tf.keras.layers.Dense(1, activation='softmax'),
 ])
 
 #model.compile(loss='mse', optimizer='adadelta')
 #opt = SGD(lr=0.01, momentum=0.9)
-model.compile(loss='mse', optimizer='rmsprop', metrics=['mse','mae'])
+model.compile(loss='mean_squared_error', optimizer='adam', metrics='accuracy')
 
-model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=2048)
+model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=100)
 json_file = model.to_json()
 with open('dense.json', "w") as file:
     file.write(json_file)

@@ -17,7 +17,7 @@ columns_drop = ['away_losses', 'away_wins', 'conference_losses', 'conference_win
 
 
 def get_game(home_team, away_team, location=2):
-    df_teams = pd.read_csv('teams2022.csv')
+    df_teams = pd.read_csv('teams2023.csv')
     df_teams_columns = df_teams.columns.tolist()
     df_teams_columns_new = []
     for x in df_teams_columns:
@@ -43,7 +43,7 @@ def get_game(home_team, away_team, location=2):
     return append_team
 
 
-master_df = pd.read_csv('team_list_scores2022.csv')
+master_df = pd.read_csv('team_list_scores2022.csv').fillna(0)
 y = master_df['points_for'].to_numpy()
 master_df = master_df.drop(columns=['abbreviation', 'abbreviation_2', 'Unnamed: 0.1', 'Unnamed: 0', 'Unnamed: 0_2',
                                     'points_for', 'points_against', 'Unnamed: 0', 'Unnamed: 0_2'], errors='ignore')
@@ -55,49 +55,34 @@ scaler.fit(X)
 X = scaler.transform(X)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=43)
-model = RandomForestRegressor(n_estimators=600, n_jobs=-1, max_samples=44, min_samples_leaf=6,)
-model2 = LinearRegression(fit_intercept=False, positive=True)
-model3 = XGBRegressor(n_estimators=600,
-                      #gamma=3,
-                      #min_samples_leaf=5,
-                      #max_samples=44,
-                      learning_rate=.01,
-                      #max_depth=10,
-                      booster='gblinear',
-                      n_jobs=8,
-                      #colsample_bylevel=0.5,
-                      #min_child_weight=1,
-                      #colsample_bytree=.8,
-                      #subsample=.5,
-                      #reg_alpha=0,
-                      #base_score=17
-                      #objective='reg:logistic',
-                      )
+model = RandomForestRegressor(n_estimators=700, n_jobs=-1, )
+# model2 = LinearRegression(fit_intercept=False, positive=True)
+# model3 = XGBRegressor(n_estimators=700,learning_rate=.01,booster='gblinear',n_jobs=8,)
 model.fit(X_train, y_train)
-model2.fit(X_train, y_train)
-model3.fit(X_train, y_train)
+# model2.fit(X_train, y_train)
+# model3.fit(X_train, y_train)
 
 def simulate_game(team, predict_data):
     preds = []
     prediction = model.predict(scaler.transform(predict_data.to_numpy()))
-    prediction2 = model2.predict(scaler.transform(predict_data.to_numpy()))
-    prediction3 = model3.predict(scaler.transform(predict_data.to_numpy()))
+    # prediction2 = model2.predict(scaler.transform(predict_data.to_numpy()))
+    # prediction3 = model3.predict(scaler.transform(predict_data.to_numpy()))
     pred = np.round(prediction[0], 2).tolist()
-    pred2 = np.round(prediction2[0], 2).tolist()
-    pred3 = np.round(prediction3[0], 2).tolist()
+    # pred2 = np.round(prediction2[0], 2).tolist()
+    # pred3 = np.round(prediction3[0], 2).tolist()
     preds.append(pred)
-    preds.append(pred2)
-    preds.append(pred3)
+    # preds.append(pred2)
+    # preds.append(pred3)
     df = pd.DataFrame(preds, columns=[team])
     return round(df[team].mean(), 1)
 
 
-team1s = ['WISCONSIN']
-team2s = ['COLGATE']
+team1s = ['MICHIGAN']
+team2s = ['ARIZONA-STATE']
 
 for team1, team2 in zip(team1s, team2s):
-    predict_X_1 = get_game(team1, team2, location=1)
-    predict_X_2 = get_game(team2, team1, location=1)
+    predict_X_1 = get_game(team1, team2, location=0)
+    predict_X_2 = get_game(team2, team1, location=2)
 
     output = team1 + ": " + str(simulate_game(team1, predict_X_1, ))
     output2 = team2 + ": " + str(simulate_game(team2, predict_X_2,))
@@ -107,10 +92,10 @@ for team1, team2 in zip(team1s, team2s):
 
 #teams_1, teams_2 = get_schedules_for_date(20220318)
 
-#teams_1, teams_2 = get_scores_for_date(20220312)
-#winners, losers = get_favored_team_for_date('2022-03-18')
-#winners, losers = get_scores_for_date(20220311)
-#
+# teams_1, teams_2 = get_scores_for_date(20220325)
+# winners, losers = get_favored_team_for_date('2022-03-25')
+# #winners, losers = get_scores_for_date(20220312)
+# #
 # score_results_home, score_results_away, score_results, results, score_results_home_ken, score_results_away_ken, = \
 #     [], [], [], [], [], []
 # kenpom_pred = {**winners, **losers}
@@ -184,14 +169,14 @@ for team1, team2 in zip(team1s, team2s):
 #         predict_X_2 = get_game(team2, team1, location=1)
 #         team1_pred = simulate_game(team1, predict_X_1,)
 #         team2_pred = simulate_game(team2, predict_X_2,)
-#         print('Pred')
+#         print('Vegas odds:')
 #         if pred_win_team == team1:
 #             print(pred_win_team + ': ' + str(pred_win_score))
 #             print(pred_loss_team + ': ' + str(pred_loss_score))
 #         else:
 #             print(pred_loss_team + ': ' + str(pred_loss_score))
 #             print(pred_win_team + ': ' + str(pred_win_score))
-#         print('Us')
+#         print('Us:')
 #         print(team1 + ': ' + str(team1_pred))
 #         print(team2 + ': ' + str(team2_pred))
 #         print('\n')

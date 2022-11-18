@@ -3,6 +3,7 @@ import kenpompy.summary as kp
 from abbr_table import get_team_from_abbr
 import pandas as pd
 from sportsipy.ncaab.teams import Teams
+from time import sleep
 
 year = 2022
 browser = login('jacksonw765@gmail.com', 'TtEbbYxiA5')
@@ -35,10 +36,11 @@ four_convert_to_int = ['AdjTempo', 'AdjOE', 'Off-eFG%', 'Off-TO%', 'Off-OR%', 'O
 height_convert_to_int = ['AvgHgt', 'EffHgt', 'C-Hgt', 'PF-Hgt', 'SF-Hgt', 'SG-Hgt', 'PG-Hgt',
                          'Experience', 'Bench', 'Continuity']
 
-point_convert_to_int = ['Off-FT', 'Off-2P', 'Off-3P', 'Def-FT', 'Def-2P', 'Def-3P',]
+point_convert_to_int = ['Off-FT', 'Off-2P', 'Off-3P', 'Def-FT', 'Def-2P', 'Def-3P', ]
 
 eff_convert_to_int = ['Tempo-Adj', 'Avg. Poss Length-Offense', 'Avg. Poss Length-Defense',
-       'Off. Efficiency-Adj', 'Def. Efficiency-Adj',]
+                      'Off. Efficiency-Adj', 'Def. Efficiency-Adj', ]
+
 
 def clean_ken(df):
     df['abbreviation'] = df['Team'].str.upper()
@@ -56,7 +58,9 @@ def clean_ken(df):
     df['abbreviation'] = df['abbreviation'].str.replace('UNC-', 'NORTH-CAROLINA-')
     df['abbreviation'] = df['abbreviation'].str.replace('UT-', 'TEXAS-')
     df['abbreviation'] = df['abbreviation'].str.replace('SAINT-MARYS', 'SAINT-MARYS-CA')
+    df['abbreviation'] = df['abbreviation'].str.replace('LOYOLA-CHICAGO', 'LOYOLA-IL')
     return df
+
 
 kenpom_height_df = kp.get_height(browser, season=year)
 kenpom_four_df = kp.get_fourfactors(browser, season=year)
@@ -79,7 +83,8 @@ for x in point_convert_to_int:
 for x in eff_convert_to_int:
     kenpom_eff_df[x] = pd.to_numeric(kenpom_eff_df[x])
 
-for team in Teams(year):
+for team in Teams(year=year):
+    print(str(team))
     try:
         df = team.dataframe
         for x in columns_divide_by_minutes:
